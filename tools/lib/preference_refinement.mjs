@@ -3,43 +3,42 @@ import { createHash } from "node:crypto";
 import { inflateRawSync } from "node:zlib";
 
 const TOPIC_PATTERNS = [
-  { tag: "sglt2", label: "SGLT2", pattern: /\bsglt-?2\b/i },
-  { tag: "glp-1", label: "GLP-1", pattern: /\bglp-?1\b/i },
-  { tag: "diabetes", label: "diabetes", pattern: /\bdiabet/i },
-  { tag: "obesity", label: "obesity", pattern: /\bobes/i },
-  { tag: "heart_failure", label: "heart failure", pattern: /heart failure|心衰/i },
-  { tag: "cardiovascular", label: "cardiovascular disease", pattern: /cardiovascular|心血管/i },
-  { tag: "ckd", label: "CKD", pattern: /\bckd\b|chronic kidney disease|慢性肾病/i },
-  { tag: "renal", label: "renal outcomes", pattern: /\brenal\b|kidney|肾/i },
-  { tag: "hypertension", label: "hypertension", pattern: /hypertension|blood pressure|高血压/i },
-  { tag: "mortality", label: "mortality", pattern: /mortality|death|死亡/i },
-  { tag: "hospitalization", label: "hospitalization", pattern: /hospitali[sz]ation|住院/i },
-  { tag: "safety", label: "safety outcomes", pattern: /safety|adverse|不良反应|安全性/i },
+  { tag: "fault_diagnosis", label: "fault diagnosis", pattern: /fault diagnosis|故障诊断/i },
+  { tag: "condition_monitoring", label: "condition monitoring", pattern: /condition monitoring|状态监测/i },
+  { tag: "predictive_maintenance", label: "predictive maintenance", pattern: /predictive maintenance|预测性维护/i },
+  { tag: "sensor_fusion", label: "sensor fusion", pattern: /sensor fusion|多传感|传感器融合/i },
+  { tag: "optimization", label: "optimization", pattern: /optimization|optimisation|优化/i },
+  { tag: "control", label: "control", pattern: /optimal control|control strategy|控制|控制策略/i },
+  { tag: "simulation", label: "simulation", pattern: /simulation|建模仿真|仿真/i },
+  { tag: "digital_twin", label: "digital twin", pattern: /digital twin|数字孪生/i },
+  { tag: "manufacturing", label: "manufacturing", pattern: /manufacturing|machining|制造|加工/i },
+  { tag: "materials", label: "materials performance", pattern: /materials?|composite|alloy|材料|复合材料|合金/i },
+  { tag: "energy_system", label: "energy system", pattern: /battery|energy management|power system|储能|能源管理|电力系统/i },
+  { tag: "robotics", label: "robotics", pattern: /robot|robotics|机械臂|机器人/i },
 ];
 
 const STUDY_PATTERNS = [
-  { tag: "randomized_trial", label: "randomized trial", pattern: /randomi[sz]ed|clinical trial|试验/i },
-  { tag: "meta_analysis", label: "meta-analysis", pattern: /meta-analysis|systematic review|系统综述|荟萃/i },
-  { tag: "cohort", label: "cohort", pattern: /cohort|registry|队列/i },
-  { tag: "guideline", label: "guideline", pattern: /guideline|consensus|指南|共识/i },
-  { tag: "case_report", label: "case report", pattern: /case report|病例/i },
-  { tag: "animal_study", label: "animal study", pattern: /animal|mouse|mice|rat|rats|zebrafish|小鼠|大鼠|斑马鱼/i },
-  { tag: "in_vitro", label: "in vitro", pattern: /in vitro|cell line|细胞/i },
+  { tag: "benchmark_validation", label: "benchmark validation", pattern: /benchmark|基准测试|公开数据集/i },
+  { tag: "engineering_validation", label: "engineering validation", pattern: /validation|实验验证|prototype|样机|台架实验|field test|现场测试/i },
+  { tag: "comparative_study", label: "comparative study", pattern: /comparison|comparative study|对比实验/i },
+  { tag: "simulation_study", label: "simulation study", pattern: /simulation|numerical study|仿真|数值分析/i },
+  { tag: "review", label: "review", pattern: /review|survey|综述/i },
+  { tag: "dataset_tool", label: "dataset or tool", pattern: /dataset|benchmark suite|toolbox|平台|数据集|工具链/i },
   { tag: "mechanistic_study", label: "mechanistic study", pattern: /mechanis|pathway|signaling|通路|机制/i },
-  { tag: "human_outcome", label: "human clinical outcome", pattern: /patient|human|clinical outcome|hard endpoint|人群|临床结局|硬终点/i },
+  { tag: "application_study", label: "application study", pattern: /case study|industrial application|工程应用|案例研究/i },
 ];
 
 const EXCLUSION_PATTERNS = [
-  { tag: "animal_only", label: "animal-only", pattern: /仅动物|animal only|animal study|动物实验|动物研究|动物|mouse|mice|rat|rats|zebrafish|小鼠|大鼠|斑马鱼/i },
-  { tag: "in_vitro_only", label: "in-vitro only", pattern: /in vitro|cell line|细胞/i },
-  { tag: "basic_mechanism_only", label: "basic mechanism only", pattern: /基础机制|mechanis|pathway|signaling|通路|机制/i },
-  { tag: "irrelevant_disease_context", label: "irrelevant disease context", pattern: /无关|不相关|irrelevant/i },
+  { tag: "simulation_only", label: "simulation-only", pattern: /仅仿真|simulation only|only simulation|只有仿真/i },
+  { tag: "no_validation", label: "no validation", pattern: /缺乏验证|没有验证|未验证|no validation/i },
+  { tag: "insufficient_data", label: "insufficient data", pattern: /数据不足|样本过小|insufficient data/i },
+  { tag: "irrelevant_domain", label: "irrelevant domain context", pattern: /无关|不相关|irrelevant|范围外/i },
   { tag: "low_evidence", label: "low evidence", pattern: /low evidence|证据弱|证据不足/i },
-  { tag: "non_medical", label: "non-medical", pattern: /architecture|social media|digital media|虚拟建筑|社交媒体|心理学/i },
+  { tag: "non_engineering", label: "non-engineering", pattern: /social media|digital media|marketing|education policy|社交媒体|市场营销|教育政策/i },
 ];
 
-const TOPIC_ORDER = ["sglt2", "glp-1", "diabetes", "obesity", "heart_failure", "cardiovascular", "ckd", "renal", "hypertension", "mortality", "hospitalization", "safety"];
-const SCOPE_ORDER = ["clinical_outcome", "human_outcome", "randomized_trial", "meta_analysis", "cohort", "guideline", "case_report", "animal_only", "animal_study", "in_vitro_only", "in_vitro", "basic_mechanism_only", "mechanistic_study", "irrelevant_disease_context", "low_evidence", "non_medical"];
+const TOPIC_ORDER = ["fault_diagnosis", "condition_monitoring", "predictive_maintenance", "sensor_fusion", "optimization", "control", "simulation", "digital_twin", "manufacturing", "materials", "energy_system", "robotics"];
+const SCOPE_ORDER = ["engineering_validation", "benchmark_validation", "comparative_study", "application_study", "simulation_study", "dataset_tool", "review", "simulation_only", "no_validation", "insufficient_data", "mechanistic_study", "irrelevant_domain", "low_evidence", "non_engineering"];
 
 function nowIso(input) {
   return input || new Date().toISOString();
@@ -137,18 +136,18 @@ function inferEvidenceFeatures({
     ...matchTags(titleText, EXCLUSION_PATTERNS),
   ]);
   const keyTerms = uniq([...topicTags, ...studyTags, ...exclusionTags]);
-  const clinicalFocus = topicTags.some((tag) => ["heart_failure", "cardiovascular", "renal", "ckd", "mortality", "hospitalization", "safety"].includes(tag))
-    || studyTags.includes("human_outcome")
-    || /clinical outcome|hard endpoint|临床结局|硬终点/i.test(fullText);
-  const prefersClinicalOverMechanism = direction === "positive" && /人群结局|临床结局|硬终点|比机制更重要|关注.*结局/i.test(commentText);
+  const applicationFocus = topicTags.some((tag) => ["fault_diagnosis", "condition_monitoring", "predictive_maintenance", "energy_system", "robotics"].includes(tag))
+    || studyTags.includes("engineering_validation")
+    || /实验验证|工程应用|现场测试|benchmark|validation/i.test(fullText);
+  const prefersApplicationOverTheory = direction === "positive" && /更重视验证|更看重实验|关注.*应用|优先实验验证/i.test(commentText);
   const titleOnly = !commentText;
   let scopeTags = uniq([
-    ...studyTags.filter((tag) => ["randomized_trial", "meta_analysis", "cohort", "guideline", "case_report", "animal_study", "in_vitro", "mechanistic_study", "human_outcome"].includes(tag)),
+    ...studyTags.filter((tag) => ["benchmark_validation", "engineering_validation", "comparative_study", "simulation_study", "review", "dataset_tool", "mechanistic_study", "application_study"].includes(tag)),
     ...exclusionTags,
-    ...(clinicalFocus ? ["clinical_outcome"] : []),
+    ...(applicationFocus ? ["engineering_validation"] : []),
   ]);
-  if (prefersClinicalOverMechanism) {
-    scopeTags = scopeTags.filter((tag) => !["mechanistic_study", "basic_mechanism_only"].includes(tag));
+  if (prefersApplicationOverTheory) {
+    scopeTags = scopeTags.filter((tag) => !["mechanistic_study", "simulation_only"].includes(tag));
   }
   const extractedReason = commentText || titleContext || titleTranslation || englishTitle || "";
   const extractedTerms = uniq([
@@ -158,7 +157,7 @@ function inferEvidenceFeatures({
 
   let preferenceHint = "needs_more_feedback";
   if (direction === "positive") {
-    preferenceHint = clinicalFocus ? "strong_positive" : "soft_positive";
+    preferenceHint = applicationFocus ? "strong_positive" : "soft_positive";
   } else if (direction === "negative") {
     preferenceHint = exclusionTags.length ? "negative_preference" : "exclusion_hint";
   } else if (direction === "ambiguous") {
@@ -173,7 +172,7 @@ function inferEvidenceFeatures({
     key_terms: keyTerms,
     extracted_terms: extractedTerms,
     extracted_reason: extractedReason,
-    clinical_focus: clinicalFocus,
+    clinical_focus: applicationFocus,
     title_only: titleOnly,
     preference_hint: preferenceHint,
   };

@@ -4,6 +4,8 @@ import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { buildSkillAlignmentMatrix } from "./lib/research_os_exports.mjs";
 import { buildWritebackReadyItems } from "./lib/pipeline_stage_support.mjs";
+import { createSourceAdapters, executeSourcePlan } from "./lib/source_adapters.mjs";
+import { createRuntimeSourceHandlers } from "./lib/source_fetchers.mjs";
 import { getTranslationConfig, loadTranslationCache } from "./lib/title_translation_support.mjs";
 import { LABELS, TRIAGE_VERSION, classifyItem, loadScreeningStandards, summarizeGradeCounts } from "./lib/triage_policy.mjs";
 import { createZoteroSemanticAdapter } from "./lib/zotero_semantic_search.mjs";
@@ -13,7 +15,16 @@ import { applyScreeningStandardsLearningUpdate, generateRuleSuggestionsFromFeedb
 import { evaluateRunInterval } from "./lib/schedule_support.mjs";
 import { evaluatePwshGate } from "./lib/pwsh_gate.mjs";
 import { buildRuntimeConfig } from "./lib/runtime_config.mjs";
-import { buildNcbiESearchUrl, loadPubMedPmcSearchConfig, loadRssSources } from "./lib/literature_config.mjs";
+import {
+  buildCrossrefWorksUrl,
+  buildNcbiESearchUrl,
+  loadCnkiImportConfig,
+  loadCrossrefSearchConfig,
+  loadPubMedPmcSearchConfig,
+  loadRssSources,
+  loadSourcePlan,
+  readCnkiImportItems,
+} from "./lib/literature_config.mjs";
 import { buildMovePlan, scanFeedbackRows, scanLiteratureRecords } from "./archive_history_by_feedback.mjs";
 import { buildCorrectionPlan, enrichArchivePlanWithZoteroTitleMatches, readCollections } from "./zotero_feedback_collection_corrections.mjs";
 
@@ -144,88 +155,6 @@ async function pingConnector() {
   } catch {
     return false;
   }
-}
-function parseRssItems(xml, sourceUrl) {
-  const items = [];
-  const channelTitle = cleanText((xml.match(/<channel[\s\S]*?<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "");
-  const blocks = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
-  for (const b of blocks) {
-    const title = cleanText((b.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "");
-    const link = cleanText((b.match(/<link[^>]*>([\s\S]*?)<\/link>/i) || [])[1] || "");
-    const desc = cleanText((b.match(/<description[^>]*>([\s\S]*?)<\/description>/i) || [])[1] || "");
-    if (!title) continue;
-    const doi = (desc.match(/10\.\d{4,9}\/[-._;()/:A-Z0-9]+/i) || [])[0] || "";
-    items.push({
-      source_channel: "rss",
-      source_platform: "rss",
-      feed_url: sourceUrl,
-      journal: channelTitle,
-      item_type_hint: "journalArticle",
-      title,
-      url: link,
-      abstract: desc,
-      doi: doi.toLowerCase(),
-    });
-  }
-  return items;
-}
-async function fetchRssAll() {
-  const out = [];
-  const failed = [];
-  const rssConfig = loadRssSources({ root: ROOT });
-  await Promise.all(
-    rssConfig.sources.map(async ({ url: u }) => {
-      try {
-        const xml = await fetchTextWithRetry(u, 3, 15000);
-        out.push(...parseRssItems(xml, u));
-      } catch (e) {
-        failed.push({ feed: u, error: String(e.message || e) });
-      }
-    }),
-  );
-  return { items: out, failed, config: rssConfig };
-}
-async function fetchNcbiDatabase(database, cfg) {
-  const esearchUrl = buildNcbiESearchUrl(cfg, database);
-  const txt = await fetchText(esearchUrl, 20000);
-  const json = JSON.parse(txt);
-  const ids = json?.esearchresult?.idlist || [];
-  if (!ids.length) return { items: [], failed: [] };
-  const esummaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=${encodeURIComponent(database)}&retmode=json&id=${ids.join(",")}`;
-  const sumTxt = await fetchText(esummaryUrl, 20000);
-  const sum = JSON.parse(sumTxt);
-  const items = ids
-    .map((id) => sum?.result?.[id])
-    .filter(Boolean)
-    .map((r, i) => ({
-      source_channel: "database",
-      source_platform: database,
-      item_type_hint: "journalArticle",
-      title: cleanText(r.title || ""),
-      url: database === "pmc" ? `https://www.ncbi.nlm.nih.gov/pmc/articles/PMC${ids[i]}/` : `https://pubmed.ncbi.nlm.nih.gov/${ids[i]}/`,
-      abstract: "",
-      doi: "",
-      pmid: database === "pubmed" ? String(ids[i]) : "",
-      pmcid: database === "pmc" ? `PMC${ids[i]}` : "",
-      journal: r.fulljournalname || "",
-      pubdate: r.pubdate || "",
-    }));
-  return { items, failed: [] };
-}
-async function fetchPubMed() {
-  const cfg = loadPubMedPmcSearchConfig({ root: ROOT, now: new Date() });
-  const items = [];
-  const failed = [];
-  for (const database of cfg.databases) {
-    try {
-      const result = await fetchNcbiDatabase(database, cfg);
-      items.push(...result.items);
-      failed.push(...(result.failed || []));
-    } catch (error) {
-      failed.push({ source: database, error: String(error.message || error) });
-    }
-  }
-  return { items, failed, config: cfg };
 }
 function dedup(items) {
   const seen = new Set();
@@ -623,19 +552,60 @@ export async function runResearchOsPipeline({ argv = process.argv } = {}) {
   report.steps.connector = { ok: await pingConnector() };
 
   const fetchStarted = Date.now();
-  const rss = await fetchRssAll();
-  const db = await fetchPubMed().catch((e) => ({ items: [], failed: [{ source: "pubmed", error: String(e.message || e) }] }));
+  const sourcePlan = loadSourcePlan({ root: ROOT, now });
+  const sourceHandlers = createRuntimeSourceHandlers({
+    root: ROOT,
+    helpers: {
+      fetchTextWithRetry,
+      fetchText,
+      fetchJson,
+      loadRssSources,
+      loadPubMedPmcSearchConfig,
+      loadCrossrefSearchConfig: (options) => loadCrossrefSearchConfig({ root: ROOT, now, ...options }),
+      loadCnkiImportConfig,
+      buildNcbiESearchUrl,
+      buildCrossrefWorksUrl,
+      readCnkiImportItems,
+      cleanText,
+    },
+  });
+  const sourceResults = await executeSourcePlan(createSourceAdapters({
+    sourcePlan,
+    handlers: sourceHandlers,
+  }));
+  const rss = sourceResults.rss;
+  const db = sourceResults.pubmed;
+  const crossref = sourceResults.crossref;
+  const cnkiImport = sourceResults.cnki_import;
+  const arxiv = sourceResults.arxiv;
+  const semanticScholar = sourceResults.semantic_scholar;
+  const dblp = sourceResults.dblp;
   report.stage_timings.fetch = { status: "completed", ms: Date.now() - fetchStarted };
   report.counts.rss_raw = rss.items.length;
   report.counts.db_raw = db.items.length;
-  report.failures.push(...rss.failed.map((f) => ({ stage: "rss", ...f })));
-  report.failures.push(...db.failed.map((f) => ({ stage: "pubmed", ...f })));
+  report.counts.crossref_raw = crossref.items.length;
+  report.counts.cnki_import_raw = cnkiImport.items.length;
+  report.counts.arxiv_raw = arxiv.items.length;
+  report.counts.semantic_scholar_raw = semanticScholar.items.length;
+  report.counts.dblp_raw = dblp.items.length;
+  report.failures.push(...sourceResults.all_failures);
   report.steps.med_entry_parallel = {
     ok: true,
+    active_sources: sourcePlan.active_sources,
     rss_raw: rss.items.length,
     db_raw: db.items.length,
+    crossref_raw: crossref.items.length,
+    cnki_import_raw: cnkiImport.items.length,
+    arxiv_raw: arxiv.items.length,
+    semantic_scholar_raw: semanticScholar.items.length,
+    dblp_raw: dblp.items.length,
     rss_failures: rss.failed.length,
     db_failures: db.failed.length,
+    crossref_failures: crossref.failed.length,
+    cnki_import_failures: cnkiImport.failed.length,
+    arxiv_failures: arxiv.failed.length,
+    semantic_scholar_failures: semanticScholar.failed.length,
+    dblp_failures: dblp.failed.length,
     rss_config_path: rss.config?.path || "",
     rss_sources_enabled: rss.config?.enabled_count || 0,
     pubmed_pmc_config_path: db.config?.path || "",
@@ -644,10 +614,19 @@ export async function runResearchOsPipeline({ argv = process.argv } = {}) {
     pubmed_pmc_mindate: db.config?.minDate || "",
     pubmed_pmc_maxdate: db.config?.maxDate || "",
     pubmed_pmc_warnings: db.config?.warnings || [],
+    crossref_config_path: crossref.config?.path || "",
+    crossref_rows: crossref.config?.rows || 0,
+    crossref_query: crossref.config?.query || "",
+    cnki_import_config_path: cnkiImport.config?.path || "",
+    cnki_import_paths: cnkiImport.config?.paths || [],
+    arxiv_max_results: arxiv.config?.max_results || 0,
+    arxiv_days_back: arxiv.config?.days_back || 0,
+    semantic_scholar_limit: semanticScholar.config?.limit || 0,
+    dblp_hits_per_page: dblp.config?.hits_per_page || 0,
   };
 
   const dedupeStarted = Date.now();
-  const merged = dedup([...rss.items, ...db.items]);
+  const merged = dedup(sourceResults.all_items);
   report.stage_timings.dedupe = { status: "completed", ms: Date.now() - dedupeStarted };
   const triageStandards = loadScreeningStandards(REVIEW_ROOT);
   report.triage_standards = {
@@ -933,7 +912,7 @@ export async function runResearchOsPipeline({ argv = process.argv } = {}) {
     feedbackLearning: report.steps.feedback_learning,
     dailyExport: {
       rssCount: report.counts.rss_raw,
-      databaseCount: report.counts.db_raw,
+      databaseCount: report.counts.db_raw + report.counts.crossref_raw + report.counts.cnki_import_raw + report.counts.arxiv_raw + report.counts.semantic_scholar_raw + report.counts.dblp_raw,
       mergedCount: report.counts.merged,
       exportedCount: report.counts.daily_export,
       excludesD: true,
@@ -945,6 +924,11 @@ export async function runResearchOsPipeline({ argv = process.argv } = {}) {
 
   await fs.writeFile(path.join(pipeDir, "rss_items.json"), JSON.stringify(rss.items, null, 2), "utf8");
   await fs.writeFile(path.join(pipeDir, "db_items.json"), JSON.stringify(db.items, null, 2), "utf8");
+  await fs.writeFile(path.join(pipeDir, "crossref_items.json"), JSON.stringify(crossref.items, null, 2), "utf8");
+  await fs.writeFile(path.join(pipeDir, "cnki_import_items.json"), JSON.stringify(cnkiImport.items, null, 2), "utf8");
+  await fs.writeFile(path.join(pipeDir, "arxiv_items.json"), JSON.stringify(arxiv.items, null, 2), "utf8");
+  await fs.writeFile(path.join(pipeDir, "semantic_scholar_items.json"), JSON.stringify(semanticScholar.items, null, 2), "utf8");
+  await fs.writeFile(path.join(pipeDir, "dblp_items.json"), JSON.stringify(dblp.items, null, 2), "utf8");
   await fs.writeFile(path.join(pipeDir, "merged_items.json"), JSON.stringify(merged, null, 2), "utf8");
   await fs.writeFile(path.join(pipeDir, "triaged_items.json"), JSON.stringify(triagedAll, null, 2), "utf8");
   await fs.writeFile(path.join(pipeDir, "triaged_export_items.json"), JSON.stringify(triaged, null, 2), "utf8");

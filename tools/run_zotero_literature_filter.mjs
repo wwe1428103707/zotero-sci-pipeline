@@ -10,7 +10,7 @@ import { runResearchOsPipeline } from "./run_research_os_pipeline.mjs";
 import { buildRuntimeConfig } from "./lib/runtime_config.mjs";
 import { evaluateRunInterval } from "./lib/schedule_support.mjs";
 
-const AUTOMATION_NAME = "zotero-literature-filter";
+const AUTOMATION_NAME = "zotero-sci-pipeline";
 const MANUAL_BYPASS_REASON = "manual_bypass_interval_gate";
 const EXPLICIT_FORCE_BYPASS_REASON = "explicit_force_run";
 
@@ -339,3 +339,4 @@ if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
     process.exit(1);
   });
 }
+

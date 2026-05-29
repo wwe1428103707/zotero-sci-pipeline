@@ -1,0 +1,153 @@
+{
+  "version": 2,
+  "description": "统一多数据库检索配置 — 人工智能研究方向",
+  "sources": {
+    "pubmed": {
+      "enabled": false,
+      "days_back": 7,
+      "query": "",
+      "keyword_groups": {
+        "required": [
+          ["artificial intelligence", "machine learning", "deep learning"],
+          ["diagnosis", "prediction", "classification", "segmentation"]
+        ],
+        "optional": [
+          "medical imaging",
+          "transformer",
+          "large language model",
+          "clinical decision support"
+        ],
+        "negative": [
+          "review",
+          "survey",
+          "case report",
+          "tutorial"
+        ]
+      },
+      "retmax": 100,
+      "sort": "date",
+      "datetype": "pdat"
+    },
+    "pmc": {
+      "enabled": false,
+      "days_back": 7,
+      "query": "",
+      "keyword_groups": {
+        "required": [
+          ["machine learning", "deep learning", "artificial intelligence"]
+        ],
+        "optional": [
+          "medical imaging",
+          "diagnosis",
+          "biomedical"
+        ],
+        "negative": [
+          "case report"
+        ]
+      },
+      "retmax": 100,
+      "sort": "date",
+      "datetype": "pdat"
+    },
+    "arxiv": {
+      "enabled": true,
+      "days_back": 7,
+      "query": "",
+      "keyword_groups": {
+        "required": [
+          ["machine learning", "deep learning", "artificial intelligence"],
+          ["transformer", "large language model", "diffusion", "reinforcement learning", "representation learning"]
+        ],
+        "optional": [
+          "computer vision",
+          "natural language processing",
+          "multi-modal",
+          "generative model",
+          "self-supervised learning",
+          "knowledge graph"
+        ],
+        "negative": [
+          "review",
+          "tutorial",
+          "patent"
+        ]
+      },
+      "max_results": 100,
+      "sort_by": "submittedDate",
+      "sort_order": "descending"
+    },
+    "semantic_scholar": {
+      "enabled": true,
+      "days_back": 14,
+      "query": "",
+      "keyword_groups": {
+        "required": [
+          ["deep learning", "transformer", "large language model", "foundation model"],
+          ["reasoning", "planning", "reinforcement learning", "representation learning"]
+        ],
+        "optional": [
+          "computer vision",
+          "natural language processing",
+          "multi-modal learning",
+          "diffusion model",
+          "graph neural network",
+          "self-supervised learning"
+        ],
+        "negative": [
+          "review",
+          "survey",
+          "patent"
+        ]
+      },
+      "limit": 100
+    },
+    "dblp": {
+      "enabled": true,
+      "days_back": 14,
+      "query": "",
+      "keyword_groups": {
+        "required": [
+          ["machine learning", "deep learning", "artificial intelligence"]
+        ],
+        "optional": [
+          "computer vision",
+          "natural language processing",
+          "large language model",
+          "reinforcement learning"
+        ],
+        "negative": []
+      },
+      "hits_per_page": 100
+    },
+    "crossref": {
+      "enabled": true,
+      "days_back": 14,
+      "query": "",
+      "keyword_groups": {
+        "required": [
+          ["deep learning", "machine learning", "transformer"],
+          ["large language model", "foundation model", "multi-modal", "reasoning"]
+        ],
+        "optional": [
+          "computer vision",
+          "natural language processing",
+          "generative ai",
+          "reinforcement learning"
+        ],
+        "negative": [
+          "review",
+          "survey"
+        ]
+      },
+      "rows": 100
+    },
+    "cnki_import": {
+      "enabled": true,
+      "description": "知网手动导入（本地 CSV 文件）",
+      "format_hint": "auto",
+      "paths": [
+        "imports/cnki_import.csv"
+      ]
+    }
+  }
+}

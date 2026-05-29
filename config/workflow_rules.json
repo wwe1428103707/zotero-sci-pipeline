@@ -1,99 +1,252 @@
 {
   "version": 2,
-  "description": "文献分级规则。主分级由人工定义的研究范围、机制深度、模型类型和排除规则决定；检索关键词只作为证据，不直接决定等级；feedback 只用于边界样本的轻量校准。长期筛选标准仍以 research_os/文献评价/screening_standards.md 为准。可在 Codex 中让 AI 辅助生成（见 README 中的 AI 辅助配置说明）。",
+  "description": "文献分级规则覆盖层 — 人工智能研究方向。主分级由人工定义的研究范围、模型类型、证据深度和排除规则决定；检索关键词只作为证据，不直接决定等级；feedback 只用于边界样本的轻量校准。长期筛选标准以 research_os/文献评价/screening_standards.md 为准。",
   "triage": {
-    "version": "2026-01-01-v1",
+    "version": "2026-05-29-v1",
     "labels": {
-      "A": "A课题相关",
-      "B": "B专题相关",
-      "C": "C领域相关",
-      "D": "D无关"
+      "A": "A核心相关",
+      "B": "B主题相关",
+      "C": "C背景相关",
+      "D": "D低相关"
     },
     "source_labels": {
       "rss": "RSS",
       "pubmed": "PubMed",
       "pmc": "PMC",
+      "crossref": "Crossref",
+      "cnki_import": "CNKI Import",
+      "arxiv": "arXiv",
+      "semantic_scholar": "Semantic Scholar",
+      "dblp": "DBLP",
       "other": "other"
     },
+    "terms": {
+      "pollutant": [
+        "deep learning",
+        "transformer",
+        "large language model",
+        "foundation model",
+        "diffusion model",
+        "generative model",
+        "reinforcement learning",
+        "representation learning",
+        "self-supervised learning",
+        "contrastive learning",
+        "multi-modal",
+        "attention mechanism"
+      ],
+      "core_topic": [
+        "machine learning",
+        "artificial intelligence",
+        "computer vision",
+        "natural language processing",
+        "reasoning",
+        "planning",
+        "knowledge graph",
+        "graph neural network",
+        "neural network",
+        "optimization",
+        "feature extraction",
+        "embeddings"
+      ],
+      "mechanism": [
+        "benchmark",
+        "validation",
+        "experiment",
+        "ablation",
+        "dataset",
+        "open source",
+        "state-of-the-art",
+        "comparative study",
+        "error analysis",
+        "generalization",
+        "scalability"
+      ]
+    },
+    "journal_whitelist": [
+      "neural information processing systems",
+      "international conference on machine learning",
+      "international conference on learning representations",
+      "journal of machine learning research",
+      "machine learning",
+      "ieee transactions on pattern analysis and machine intelligence",
+      "artificial intelligence",
+      "nature machine intelligence",
+      "science robotics",
+      "ieee transactions on neural networks and learning systems",
+      "pattern recognition",
+      "ieee transactions on image processing",
+      "advances in neural information processing systems",
+      "proceedings of the aaai conference on artificial intelligence",
+      "proceedings of the ieee conference on computer vision and pattern recognition",
+      "proceedings of the annual meeting of the association for computational linguistics",
+      "proceedings of the european conference on computer vision",
+      "proceedings of the international conference on computer vision",
+      "international journal of computer vision",
+      "ieee transactions on artificial intelligence"
+    ],
+    "weights": {
+      "pollutant": 1.8,
+      "core_topic": 1.3,
+      "mechanism": 0.8,
+      "journal_quality": 1.0,
+      "feedback_positive": 0.6,
+      "feedback_negative": -1
+    },
+    "thresholds": {
+      "A_score": 6,
+      "A_min_pollutant_hits": 2,
+      "A_min_core_hits": 2,
+      "B_score": 3.4,
+      "C_score": 1.4,
+      "B_uncertain_below": 4.2,
+      "C_uncertain_below": 2.3
+    },
+    "grade_reasons": {
+      "A": "直接命中人工智能核心方法、模型创新或具有高质量实验验证的研究。",
+      "B": "与当前 AI 方向明显相关，可作为方法借鉴、应用场景或实验参考。",
+      "C": "与所在 AI 研究背景相关，但距离当前核心问题较远，低优先级保留。",
+      "D": "与当前 AI 研究目标相关性不足，仅保留审计记录。"
+    },
     "research_focus": {
-      "_comment_primary_question": "用一句话描述你的核心研究问题，例如：关注 [暴露因素] 与 [生物机制/疾病] 之间的关系。",
-      "primary_question": "[占位] 请描述你的核心研究问题，例如：关注环境污染物与神经系统毒性机制之间的关系。",
-      "_comment_preferred_evidence": "你偏好的证据类型和研究方向关键词（英文小写）。",
-      "preferred_evidence": [],
-      "_comment_core_exposure_terms": "你关注的暴露因素关键词（英文小写），例如：pollutant, exposure, toxicant",
-      "core_exposure_terms": [],
-      "_comment_core_biology_terms": "你关注的核心生物学/疾病方向关键词（英文小写），例如：neurotoxicity, inflammation, mitochondria",
-      "core_biology_terms": [],
-      "_comment_mechanism_terms": "机制相关关键词，可保留通用项，按需增减。",
-      "mechanism_terms": []
+      "_comment_primary_question": "核心研究问题",
+      "primary_question": "关注人工智能前沿方法，特别是深度学习、大语言模型、多模态学习、推理与规划等方向的核心模型创新与实验验证。",
+      "_comment_preferred_evidence": "偏好的证据类型和方向关键词",
+      "preferred_evidence": [
+        "benchmark evaluation",
+        "ablation study",
+        "open-source code and model",
+        "state-of-the-art comparison",
+        "cross-domain generalization"
+      ],
+      "_comment_core_exposure_terms": "核心方法关键词",
+      "core_exposure_terms": [
+        "deep learning",
+        "transformer",
+        "large language model",
+        "diffusion model",
+        "reinforcement learning",
+        "multi-modal learning",
+        "self-supervised learning",
+        "representation learning",
+        "generative model"
+      ],
+      "_comment_core_biology_terms": "核心应用/场景关键词",
+      "core_biology_terms": [
+        "computer vision",
+        "natural language processing",
+        "reasoning",
+        "planning",
+        "knowledge graph",
+        "autonomous driving",
+        "robotics",
+        "speech recognition"
+      ],
+      "_comment_mechanism_terms": "机制/验证相关关键词",
+      "mechanism_terms": [
+        "benchmark",
+        "ablation",
+        "generalization",
+        "scalability",
+        "open source",
+        "dataset",
+        "state-of-the-art"
+      ]
     },
     "priority_rules": {
-      "_comment_strongly_prioritize": "你最优先关注的研究类型（中文描述）。",
-      "strongly_prioritize": [],
-      "_comment_downgrade": "你想降低优先级的研究类型（中文描述）。",
-      "downgrade": [],
-      "_comment_strict_exclude": "你想直接排除的研究类型（中文描述）。谨慎使用。",
+      "_comment_strongly_prioritize": "最优先关注的研究类型",
+      "strongly_prioritize": [
+        "提出新模型架构且有完整实验验证的论文",
+        "在公开基准上达到 SOTA 且有消融分析和代码开源的研究",
+        "大语言模型的推理、规划、工具使用等能力突破",
+        "多模态学习（视觉+语言+其他模态）的创新方法",
+        "自监督学习、表示学习的理论分析和方法创新",
+        "扩散模型在图像/视频/3D 生成中的新应用",
+        "具备严格理论基础和实验验证的强化学习算法"
+      ],
+      "_comment_downgrade": "降低优先级的研究类型",
+      "downgrade": [
+        "只有数据集或基准贡献，没有方法创新的论文",
+        "仅做增量改进而没有显著效果提升的调参工作",
+        "缺乏理论分析或消融实验的纯应用报告",
+        "数据量过小或实验设置不完整的方法论文"
+      ],
+      "_comment_strict_exclude": "直接排除的研究类型",
       "strict_exclude": []
     },
     "grading_rules": {
-      "_comment": "请根据你的研究方向描述每个等级的定义、典型场景和处理方式。以下为占位示例。",
+      "_comment": "每个等级的定义、典型场景和处理方式",
       "A": {
-        "definition": "[占位] 直接命中当前核心研究方向，且具有明确机制深度或实验验证价值。",
+        "definition": "直接命中人工智能核心方法创新，且具有高质量实验验证和复现价值的研究。",
         "required_features": [
-          "[占位] 与核心暴露因素方向直接相关",
-          "[占位] 与核心生物学机制直接相关",
-          "[占位] 具有强证据支持（动物实验、细胞实验、机制验证等）"
+          "提出新模型架构或方法创新",
+          "在多个公开基准上验证且达到 SOTA 或可比结果",
+          "包含消融分析、参数研究和泛化性验证",
+          "代码和模型权重开源或可复现"
         ],
         "typical_cases": [
-          "[占位] 同时涉及目标暴露因素和核心生物机制的机制研究",
-          "[占位] 使用哺乳动物模型研究暴露与毒性机制的论文"
+          "在 NeurIPS/ICML/ICLR/CVPR 等顶会发表的新方法论文",
+          "大语言模型/扩散模型/多模态模型的核心创新工作",
+          "具备严格理论分析和充分实验验证的强化学习或表示学习工作"
         ],
-        "action": "[占位] 优先精读，进入重点文献库。"
+        "action": "优先精读，进入重点文献库，作为方法借鉴和实验对比基准。"
       },
       "B": {
-        "definition": "[占位] 与当前专题明显相关，但不是完全核心。可作为背景、相邻机制或方法来源。",
+        "definition": "与当前 AI 方向明显相关，但不是完全核心。可作为背景、邻近方案或方法来源。",
         "typical_cases": [
-          "[占位] 只命中暴露因素或生物机制之一",
-          "[占位] 机制深度中等，可作为背景参考"
+          "只命中核心方法或应用场景之一",
+          "有实验验证但创新性一般的增量工作",
+          "在某子领域有参考价值但不属于主流方向"
         ],
-        "action": "[占位] 保留，作为专题背景或方法借鉴。"
+        "action": "保留，作为专题背景、实验对比或方法借鉴。"
       },
       "C": {
-        "definition": "[占位] 属于大领域背景，但距离当前核心课题较远。",
+        "definition": "属于人工智能大领域背景，但距离当前核心关注方向较远。",
         "typical_cases": [
-          "[占位] 宽泛相关的领域研究，机制深度不足",
-          "[占位] 纯观察性研究，缺乏机制解释"
+          "通用背景综述或方向介绍",
+          "验证深度不足的早期探索性工作",
+          "特定应用场景报告但方法价值有限"
         ],
-        "action": "[占位] 低优先级保留。"
+        "action": "低优先级保留，必要时作为相关工作开展。"
       },
       "D": {
-        "definition": "[占位] 与当前课题相关性不足，或命中严格排除条件。",
+        "definition": "与当前 AI 研究方向相关性不足，或命中严格排除条件。",
         "typical_cases": [
-          "[占位] 命中严格排除规则的研究",
-          "[占位] 关键词偶然命中但实际不相关"
+          "关键词偶然命中但实际内容不相关",
+          "纯工程实现报告或缺少学术价值的应用笔记"
         ],
-        "action": "[占位] 不进入阅读队列，仅保留审计记录。"
+        "action": "不进入阅读队列，仅保留审计记录。"
       }
     },
-    "_comment_decision_process": "分级决策流程，按顺序执行。请根据你的分级规则填写。",
+    "_comment_decision_process": "分级决策流程",
     "decision_process": [
-      "[占位] 第一步：检查 strict_exclude，命中则标为 D。",
-      "[占位] 第二步：判断核心暴露相关性。",
-      "[占位] 第三步：判断核心生物机制相关性。",
-      "[占位] 第四步：综合评估证据类型和机制深度，确定 A/B/C。",
-      "[占位] 第五步：检查 uncertain_boundaries，处理边界情况。"
+      "第一步：检查严格排除条件，命中则标为 D。",
+      "第二步：判断是否命中核心方法术语（pollutant），即是否涉及深度学习、Transformer、大模型等前沿方法。",
+      "第三步：判断是否命中核心应用场景（core_topic），即是否为 CV、NLP、强化学习等 AI 子方向。",
+      "第四步：综合评估证据类型和验证深度（mechanism），包括是否有基准测试、消融分析、代码开源等。",
+      "第五步：根据得分和阈值确定 A/B/C 等级，处理边界情况。"
     ],
-    "_comment_uncertain_boundaries": "边界情况处理规则。请根据你的研究方向填写。",
+    "_comment_uncertain_boundaries": "边界情况处理规则",
     "uncertain_boundaries": [
       {
-        "case": "[占位] 缺乏机制验证的纯临床结局研究",
-        "default_grade": "C",
-        "upgrade_condition": "[占位] 若能提供明确机制线索或可转化假设，可升为 B。"
+        "case": "方法有创新但实验不完整或只在单数据集验证",
+        "default_grade": "B",
+        "upgrade_condition": "如果有消融分析或跨数据集泛化验证，可升为 A。"
       },
       {
-        "case": "[占位] 缺乏功能验证的大规模组学关联研究",
+        "case": "只有基准集贡献而没有方法创新",
         "default_grade": "C",
-        "upgrade_condition": "[占位] 若组学结果指向核心机制且有部分验证，可升为 B 或 A。"
+        "upgrade_condition": "如果数据集规模大、质量高且配套基线完整，可升为 B。"
+      },
+      {
+        "case": "开源代码但实验结果未达到 SOTA",
+        "default_grade": "B",
+        "upgrade_condition": "如果代码完整、文档清晰且有复现潜力，可考虑 A 级保留。"
+      },
+      {
+        "case": "应用报告有工程价值但方法创新有限",
+        "default_grade": "C",
+        "upgrade_condition": "如果提供详细实验对比和误差分析，可升为 B。"
       }
     ],
     "reason_format": {
@@ -107,18 +260,18 @@
       ],
       "field_definitions": {
         "grade": "A/B/C/D 分级结果。",
-        "matched_scope": "命中的核心范围，例如暴露因素、生物机制、模型、实验类型。",
-        "missing_or_weak_scope": "缺失或较弱的部分，例如无机制验证、非核心领域、纯观察性。",
-        "evidence_type": "证据类型，例如 animal study、in vitro、mechanism、omics with validation、cohort、clinical、engineering。",
+        "matched_scope": "命中的核心范围，例如模型类型、方法创新、验证方式。",
+        "missing_or_weak_scope": "缺失或较弱的部分，例如缺少消融实验、泛化验证不足。",
+        "evidence_type": "证据类型，例如 benchmark evaluation、ablation study、open-source、theoretical analysis。",
         "grade_reason": "一句话说明为什么给出该等级。",
         "uncertainty": "低/中/高。不确定时说明边界原因。"
       },
       "example": {
         "grade": "B",
-        "matched_scope": "[占位] 命中 [暴露因素] 和 [生物机制]",
-        "missing_or_weak_scope": "[占位] 缺少 [某关键验证]",
-        "evidence_type": "[占位] observational study with limited mechanistic discussion",
-        "grade_reason": "[占位] 可作为背景参考，但机制证据不足，暂列 B。",
+        "matched_scope": "命中了 Transformer 新变体和图像分类任务",
+        "missing_or_weak_scope": "只在 ImageNet 验证，缺少跨数据集泛化证据",
+        "evidence_type": "benchmark evaluation with single dataset",
+        "grade_reason": "方法创新明确但验证不充分，暂列 B。",
         "uncertainty": "中"
       }
     }
@@ -134,42 +287,34 @@
     ],
     "comment_optional": true,
     "how_to_use_feedback": {
-      "keep": "表示用户认可该文献有保留价值。未来相似文献可在 B/C 或 C/D 边界上适度上调，但不能把明显无关或命中 strict_exclude 的文献升为 A。",
-      "drop": "表示用户认为该文献不值得保留。未来相似文献可在 B/C 或 C/D 边界上适度下调，但不能自动排除直接命中核心暴露、生物机制和实验验证的文献。",
-      "upgrade": "表示当前规则低估了该文献。应记录升级原因，尤其是被低估的机制类型、模型类型、疾病背景或可迁移价值。",
-      "downgrade": "表示当前规则高估了该文献。应记录误判原因，尤其是关键词误导、机制不足、纯观察性或范围外主题。"
+      "keep": "表示用户认可该文献有保留价值。未来相似文献可在 B/C 或 C/D 边界上适度上调。",
+      "drop": "表示用户认为该文献不值得保留。未来相似文献可在 B/C 或 C/D 边界上适度下调。",
+      "upgrade": "表示当前规则低估了该文献。应记录升级原因，特别是被低估的方法价值、验证深度或开源贡献。",
+      "downgrade": "表示当前规则高估了该文献。应记录误判原因，尤其是关键词误导、验证不足或方法创新有限。"
     },
     "semantic_search": {
       "adapter": "zotero_mcp",
-      "tools": [
-        "semantic_status",
-        "semantic_search"
-      ],
-      "purpose": "仅用于发现与 keep/upgrade/drop/downgrade 文献相似的偏好趋势或解释线索，不直接扩展当日候选池，不把语义邻居当作伪标签。"
+      "tools": ["semantic_status", "semantic_search"],
+      "purpose": "仅用于发现与 keep/upgrade/drop/downgrade 文献相似的偏好趋势或解释线索，不直接扩展当日候选池。"
     },
     "learning_policy": {
       "auto_update_allowed": [
         "记录高频 keep 或 upgrade 的主题模式",
         "记录高频 drop 或 downgrade 的误判模式",
         "建议新增、删除或调整关键词",
-        "建议补充 downgrade 或 strict_exclude 规则",
-        "建议把反复出现的边界情况加入 uncertain_boundaries"
+        "建议补充 downgrade 或 strict_exclude 规则"
       ],
       "auto_update_forbidden": [
         "根据单次 feedback 永久改变 A/B/C/D 定义",
         "自动重写 primary_question 或 research_focus",
         "自动把语义相似文献标为正例或负例",
-        "自动删除人工定义的严格排除规则",
-        "自动把高影响因子期刊文献升为 A",
-        "自动把某一类研究一概排除"
+        "自动删除人工定义的严格排除规则"
       ],
       "manual_review_trigger": [
         "同一原因连续出现 3 次 upgrade",
         "同一原因连续出现 3 次 downgrade",
         "A 类文献被用户多次 drop",
-        "D 类文献被用户多次 upgrade",
-        "某个负向关键词反复误杀有价值文献",
-        "某个正向关键词反复导致无关文献升高"
+        "D 类文献被用户多次 upgrade"
       ]
     }
   }

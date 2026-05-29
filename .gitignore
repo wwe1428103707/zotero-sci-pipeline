@@ -9,12 +9,16 @@ secrets.json
 config.local.json
 config.private.json
 
+# Dependencies
+node_modules/
+
 # Personal runtime data (NOT for public repo)
 research_os/
 .screening_standards.last_synced.md
 
 # Binary files
 screening_standards.docx
+*.xpi
 
 # Tests with hardcoded local paths
 tests/
@@ -28,6 +32,10 @@ public_release/
 
 # Logs and caches
 logs/
+.tmp/
+
+# Third-party vendored code (not project source)
+vendor/
 *.log
 .cache/
 .tmp*/

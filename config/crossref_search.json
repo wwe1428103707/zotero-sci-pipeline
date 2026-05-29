@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "query": "engineering",
+  "rows": 100,
+  "sort": "published",
+  "order": "desc",
+  "filter": {
+    "type": "journal-article"
+  },
+  "select": [
+    "DOI",
+    "title",
+    "URL",
+    "abstract",
+    "published-print",
+    "published-online",
+    "container-title",
+    "author"
+  ]
+}

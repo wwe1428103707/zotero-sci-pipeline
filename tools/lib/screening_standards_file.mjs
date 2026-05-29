@@ -1,8 +1,9 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import {
   buildPubMedQueryFromKeywordGroups,
+  loadResearchProfile,
   loadPubMedKeywordGroupsFromConfig,
   normalizePubMedKeywordGroups,
   updatePubMedPmcKeywordGroups,
@@ -17,65 +18,61 @@ export const SCREENING_STANDARDS_DOCX_FILE_NAME = "screening_standards.docx";
 export const SCREENING_STANDARDS_LAST_SYNCED_FILE_NAME = ".screening_standards.last_synced.md";
 export const SCREENING_STANDARDS_SOURCE_NAME = "screening_standards_md";
 
-export const INITIAL_SCREENING_STANDARDS_ZH = `# 文献筛选标准
+function renderBulletSection(items = []) {
+  return (items || []).map((entry) => `* ${String(entry || "").trim()}`).filter((entry) => entry !== "*").join("\n");
+}
 
-当前优先关注机制研究、动物或细胞实验相关证据，并对低相关性的人群队列或范围外研究降权。
+export function buildInitialScreeningStandards(profile = loadResearchProfile().config) {
+  const defaults = profile?.screening_defaults || {};
+  return `# 文献筛选标准
+
+${String(defaults.overview || "").trim()}
 
 ---
 
 ## 优先关注
 
-* 优先关注动物实验，尤其是哺乳动物疾病模型（如小鼠、大鼠等）、体外实验、机制研究和基础机制研究场景。
-* 优先关注涉及神经生物学、神经炎症、小胶质细胞、神经元-胶质细胞相互作用、突触调控或相关神经系统通路的机制研究。
-* 优先关注多组学机制研究（如转录组学、蛋白质组学、代谢组学、单细胞组学、空间组学、整合组学分析），尤其是与疾病机制相关并有实验验证支持的研究。
-* 优先关注补体系统相关研究、补体激活通路、补体介导的神经炎症、免疫调控机制或神经免疫相互作用。
-* 优先关注肠道菌群或微生物组相关研究，尤其是涉及疾病机制、宿主-微生物相互作用、神经免疫调控、代谢、肠-脑轴、多组学整合或实验验证的研究。
-* 非哺乳动物模型中，斑马鱼研究优先级高于其他非哺乳动物模型。
-* 即使不属于神经领域，只要机制深度强、生物学信息量高或具有广泛可转化意义，也优先关注探索性或基础机制研究。
+${renderBulletSection(defaults.positive)}
 
 ---
 
 ## 相对降权
 
-* 降权缺乏机制深度的人群队列研究、流行病学关联研究、大型观察性结局研究或纯临床结局导向研究。
-* 降权肾脏结局研究和以肾脏为中心的临床结局场景，除非其直接关联更广泛关注的机制问题。
-* 降权植物生物学、植物组学或植物机制研究，即使使用了多组学方法。
-* 降权斑马鱼以外的非哺乳动物研究（如果蝇、线虫、酵母、昆虫单一模型等），除非其机制洞见特别突出。
-* 降权缺乏机制洞见、细胞验证、动物建模或功能实验的纯描述性临床研究。
-* 降权缺乏功能验证或机制解释的大规模组学关联研究。
-* 降权没有可迁移机制相关性的非医学或无关疾病背景研究。
+${renderBulletSection(defaults.negative)}
 
 ---
 
 ## 严格排除
 
-* 排除缺乏直接生物医学机制相关性的纯工程、计算工程、材料科学、物理学、电子、机械工程或无关技术/工业研究。
-* 排除没有实质性生物学或疾病机制洞见的纯方法学 AI、算法或工具开发论文。
-* 排除没有实验或机制性生物学相关性的非生物医学系统工程或理论建模研究。
+${renderBulletSection(defaults.exclude)}
 
 ---
 
 ## 不确定边界
 
-* 对缺乏机制验证的纯临床神经科学结局研究，目前反馈存在冲突；用于分级前需要继续细化边界。
-* 对缺乏功能验证的大规模组学关联研究，目前反馈存在冲突；用于分级前需要继续细化边界。
-* 对机制深度较强但不属于神经领域的研究，目前反馈存在冲突；用于分级前需要继续细化边界。
-* 对仅使用斑马鱼模型的机制研究，目前反馈存在冲突；用于分级前需要继续细化边界。
-* 对神经炎症语境之外的补体相关研究，目前反馈存在冲突；用于分级前需要继续细化边界。
-* 对缺乏机制或实验验证的微生物组关联研究，目前反馈存在冲突；用于分级前需要继续细化边界。
+${renderBulletSection(defaults.uncertain)}
 
 ---
 
 ## 注意事项
 
-* 对人群队列或临床结局研究的降权仅适用于纯观察性或机制较弱的场景，不应泛化到整个主题。
-* 只有当组学分析提供有意义的机制洞见，而不只是描述性谱系分析时，才优先关注多组学研究。
-* 如果机制相关性强，神经或小胶质细胞研究可跨疾病领域广泛优先关注。
-* 只有当微生物组研究涉及生物学机制、宿主相互作用、免疫调控、代谢或实验验证时，才优先关注。
-* 对非哺乳动物模型的降权仅适用于机制相关性较弱的场景；机制洞见特别突出的研究仍可纳入。
-* 植物研究原则上广泛降权，不因使用组学方法而提高优先级，除非其直接关联保守的生物医学机制。
-* 工程导向研究只有在具有明确的生物医学机制可解释性或疾病相关性时才可避免严格排除。
+${renderBulletSection(defaults.notes)}
+
+---
+
+## 论文写作要求
+
+${renderBulletSection(defaults.writing_requirements)}
+
+---
+
+## 格式偏好与投稿约束
+
+${renderBulletSection(defaults.format_preferences)}
 `;
+}
+
+export const INITIAL_SCREENING_STANDARDS_ZH = buildInitialScreeningStandards();
 
 export function screeningStandardsPath(reviewRoot) {
   return path.join(reviewRoot, SCREENING_STANDARDS_FILE_NAME);

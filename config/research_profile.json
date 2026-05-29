@@ -1,0 +1,15 @@
+{
+  "profile_id": "engineering_general",
+  "domain": "engineering",
+  "paper_type": "engineering_research_paper",
+  "language_mode": "zh_en_bilingual",
+  "default_sources": [
+    "rss",
+    "crossref",
+    "cnki_import",
+    "arxiv",
+    "semantic_scholar"
+  ],
+  "citation_style": "gbt7714",
+  "bibliography_backend": "zotero_mcp"
+}

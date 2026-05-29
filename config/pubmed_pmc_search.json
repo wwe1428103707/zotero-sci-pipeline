@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "用户可编辑：PubMed/PMC 数据库检索条件。默认只检索近 7 天，避免一次导入过多。",
+  "description": "用户可编辑：数据库检索条件，当前沿用兼容文件名和参数结构。默认只检索近 7 天，避免一次导入过多。",
   "databases": [
     "pubmed"
   ],

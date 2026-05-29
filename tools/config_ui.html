@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zotero-sci-pipeline 配置面板</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --red: #f85149;
+  --orange: #d29922;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top:0; z-index: 100; }
+header h1 { font-size: 18px; font-weight: 600; }
+header h1 span { color: var(--accent); }
+header .status { margin-left: auto; font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+header .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+header .dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+header .dot.offline { background: var(--red); }
+.container { display: flex; min-height: calc(100vh - 56px); }
+nav { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 12px 0; flex-shrink: 0; overflow-y: auto; }
+nav a { display: flex; align-items: center; gap: 8px; padding: 10px 20px; color: var(--text-dim); text-decoration: none; font-size: 14px; border-left: 3px solid transparent; transition: all .15s; cursor: pointer; }
+nav a:hover { color: var(--text); background: rgba(88,166,255,0.05); }
+nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(88,166,255,0.08); }
+nav a .icon { font-size: 16px; width: 20px; text-align: center; }
+main { flex: 1; padding: 24px 32px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; }
+.page h2 { font-size: 22px; margin-bottom: 4px; }
+.page .desc { color: var(--text-dim); font-size: 14px; margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.card h3 { font-size: 15px; margin-bottom: 12px; color: var(--accent); }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 4px; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; font-family: inherit; }
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88,166,255,0.15); }
+.form-group textarea { min-height: 100px; resize: vertical; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; }
+.form-group input[type="number"] { max-width: 120px; }
+.form-group .hint { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.form-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: all .15s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-success:hover { filter: brightness(1.1); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { filter: brightness(1.1); }
+.btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--text-dim); }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: var(--radius); font-size: 14px; z-index: 999; max-width: 400px; animation: slideIn .3s; }
+.toast.success { background: #1a3a2a; border: 1px solid var(--green); color: var(--green); }
+.toast.error { background: #3a1a1a; border: 1px solid var(--red); color: var(--red); }
+.toast.info { background: #1a2a3a; border: 1px solid var(--accent); color: var(--accent); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.mt-8 { margin-top: 8px; }
+.mb-8 { margin-bottom: 8px; }
+.flex { display: flex; align-items: center; gap: 8px; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-4 { gap: 4px; }
+.json-editor { width: 100%; min-height: 400px; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 14px; line-height: 1.7; tab-size: 2; padding: 16px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: rgba(88,166,255,0.15); color: var(--accent); }
+.tag.green { background: rgba(63,185,80,0.15); color: var(--green); }
+.tag.orange { background: rgba(210,153,34,0.15); color: var(--orange); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.checkbox-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; }
+.checkbox-group input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+.source-toggle { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; }
+.source-toggle input { width: auto; accent-color: var(--accent); }
+.dashboard-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+.stat-card .num { font-size: 28px; font-weight: 700; color: var(--accent); }
+.stat-card .label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #333; border-radius: 20px; transition: .3s; }
+.toggle-slider::before { content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
+.toggle-switch input:checked + .toggle-slider { background: var(--green); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+.source-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; }
+.source-card .info { font-size: 14px; }
+.source-card .info small { color: var(--text-dim); font-size: 12px; display: block; }
+.loading { opacity: .5; pointer-events: none; }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pipeline-output { background: #000; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; max-height: 400px; overflow: auto; white-space: pre-wrap; color: #0f0; margin-top: 8px; }
+.md-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 14px; line-height: 1.7; margin-top: 8px; max-height: 400px; overflow-y: auto; }
+.md-preview h1 { font-size: 20px; margin: 12px 0 8px; }
+.md-preview h2 { font-size: 17px; margin: 10px 0 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.md-preview h3 { font-size: 15px; margin: 8px 0 4px; }
+.md-preview ul { padding-left: 20px; }
+.md-preview li { margin: 2px 0; }
+.md-preview strong { color: var(--accent); }
+@media (max-width: 768px) {
+  nav { display: none; }
+  main { padding: 16px; }
+  .form-row, .form-row-3, .form-row-4, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+#modalOverlay input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; }
+#modalOverlay input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88,166,255,0.15); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>zotero</span>-sci-pipeline 配置面板</h1>
+  <div class="status">
+    <span class="dot online" id="statusDot"></span>
+    <span id="statusText">连接中...</span>
+  </div>
+</header>
+
+<div class="container">
+  <nav id="nav">
+    <a class="active" data-page="dashboard"><span class="icon">&#9679;</span> 仪表盘</a>
+    <a data-page="database_sources"><span class="icon">&#9776;</span> 数据库源</a>
+    <a data-page="rss_sources"><span class="icon">&#9749;</span> RSS 订阅</a>
+    <a data-page="research_profile"><span class="icon">&#9998;</span> 研究画像</a>
+    <a data-page="workflow_rules"><span class="icon">&#9881;</span> 分级规则</a>
+    <a data-page="pubmed_pmc_search"><span class="icon">&#9881;</span> PubMed/PMC</a>
+    <a data-page="cnki_import"><span class="icon">&#9881;</span> 知网导入</a>
+    <a data-page="screening_standards"><span class="icon">&#9997;</span> 筛选标准</a>
+    <a data-page="title_translation"><span class="icon">&#9881;</span> 翻译配置</a>
+    <a data-page="preference_learning"><span class="icon">&#9881;</span> 偏好学习</a>
+    <a data-page="env"><span class="icon">&#9881;</span> 环境变量</a>
+    <a data-page="pipeline"><span class="icon">&#9654;</span> 运行管线</a>
+  </nav>
+
+  <main>
+    <!-- 仪表盘 -->
+    <div class="page active" id="page-dashboard">
+      <h2>&#9679; 仪表盘</h2>
+      <p class="desc">项目配置概览和服务状态</p>
+      <div class="dashboard-stats" id="dashboardStats"></div>
+      <div class="card">
+        <h3>项目信息</h3>
+        <div id="projectInfo"></div>
+      </div>
+      <div class="card">
+        <h3>配置文件状态</h3>
+        <div id="configStatus"></div>
+      </div>
+    </div>
+
+    <!-- 数据库源 -->
+    <div class="page" id="page-database_sources">
+      <h2>&#9776; 数据库源配置</h2>
+      <p class="desc">管理所有检索数据库的开关和参数。在 <code>config/database_sources.json</code> 中持久化。</p>
+      <div id="dbSourcesContainer"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-save-database_sources">&#10003; 保存配置</button>
+        <button class="btn btn-outline" onclick="loadConfig('database_sources')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- RSS 订阅源 -->
+    <div class="page" id="page-rss_sources">
+      <h2>&#9749; RSS 订阅源</h2>
+      <p class="desc">管理 RSS 订阅源列表。用 <code>enabled</code> 控制启停。</p>
+      <div id="rssContainer"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-save-rss_sources">&#10003; 保存</button>
+        <button class="btn btn-outline" onclick="addRssSource()">+ 添加源</button>
+        <button class="btn btn-outline" onclick="loadConfig('rss_sources')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- 研究画像 -->
+    <div class="page" id="page-research_profile">
+      <h2>&#9998; 研究画像</h2>
+      <p class="desc">定义研究方向、默认来源、输出偏好。</p>
+      <div id="profileContainer"></div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveConfig('research_profile')">&#10003; 保存</button>
+        <button class="btn btn-outline" onclick="loadConfig('research_profile')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- 分级规则 -->
+    <div class="page" id="page-workflow_rules">
+      <h2>&#9881; 分级规则</h2>
+      <p class="desc">A/B/C/D 四级关键词权重和阈值。JSON 编辑器。</p>
+      <textarea class="json-editor" id="editor-workflow_rules"></textarea>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveConfig('workflow_rules')">&#10003; 保存</button>
+        <button class="btn btn-outline" onclick="loadConfig('workflow_rules')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- PubMed/PMC -->
+    <div class="page" id="page-pubmed_pmc_search">
+      <h2>&#9881; PubMed/PMC 检索配置</h2>
+      <p class="desc">PubMed/PMC 数据库检索条件。在 <code>config/pubmed_pmc_search.json</code> 中持久化。</p>
+      <div id="pubmedContainer"></div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveConfig('pubmed_pmc_search')">&#10003; 保存</button>
+        <button class="btn btn-outline" onclick="loadConfig('pubmed_pmc_search')">&#8635; 刷新</button>
+      </div>
+    </div>
+    <!-- 知网导入 -->
+    <div class="page" id="page-cnki_import">
+      <h2>&#9881; 知网（CNKI）导入配置</h2>
+      <p class="desc">管理知网 CSV 导入文件的路径和格式。在 <code>config/cnki_import.json</code> 中持久化。</p>
+      <div id="cnkiContainer"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-save-cnki_import">&#10003; 保存配置</button>
+        <button class="btn btn-outline" onclick="loadConfigCnki()">&#8635; 刷新</button>
+      </div>
+    </div>
+    <!-- 筛选标准 -->
+    <div class="page" id="page-screening_standards">
+      <h2>&#9997; 筛选标准</h2>
+      <p class="desc">Markdown 格式的筛选规则。修改后保存到 <code>screening_standards.md</code>。</p>
+      <div class="form-row" style="margin-bottom:12px">
+        <button class="btn btn-outline btn-sm" onclick="togglePreview()">&#128065; 预览/编辑</button>
+      </div>
+      <textarea class="json-editor" id="editor-screening_standards" style="min-height:500px;display:block"></textarea>
+      <div class="md-preview" id="preview-screening_standards" style="display:none"></div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveConfig('screening_standards')">&#10003; 保存</button>
+        <button class="btn btn-outline" onclick="loadConfig('screening_standards')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- 翻译配置 -->
+    <div class="page" id="page-title_translation">
+      <h2>&#9881; 翻译配置</h2>
+      <p class="desc"><code>config/title_translation.config.json</code></p>
+      <textarea class="json-editor" id="editor-title_translation"></textarea>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveConfig('title_translation')">&#10003; 保存</button>
+        <button class="btn btn-outline" onclick="loadConfig('title_translation')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- 偏好学习 -->
+    <div class="page" id="page-preference_learning">
+      <h2>&#9881; 偏好学习配置</h2>
+      <p class="desc"><code>config/preference_learning.config.json</code></p>
+      <textarea class="json-editor" id="editor-preference_learning"></textarea>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveConfig('preference_learning')">&#10003; 保存</button>
+        <button class="btn btn-outline" onclick="loadConfig('preference_learning')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- 环境变量 -->
+    <div class="page" id="page-env">
+      <h2>&#9881; 环境变量</h2>
+      <p class="desc"><code>.env</code> 文件。API 密钥、路径配置。</p>
+      <textarea class="json-editor" id="editor-env" style="min-height:400px;font-family:monospace"></textarea>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveEnv()">&#10003; 保存 .env</button>
+        <button class="btn btn-outline" onclick="loadEnv()">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- 运行管线 -->
+    <div class="page" id="page-pipeline">
+      <h2>&#9654; 运行管线</h2>
+      <p class="desc">手动触发管线各个阶段</p>
+      <div class="card">
+        <h3>阶段 1：入库与分级</h3>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">RSS + 数据库检索 → 去重合并 → AI 分级(A/B/C/D)</p>
+        <button class="btn btn-primary" onclick="runStage1()">&#9654; 运行 Stage 1</button>
+      </div>
+      <div class="card">
+        <h3>完整管线（Stage 1-4）</h3>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">入库 → 写回 Zotero → 翻译 → 导出报表</p>
+        <button class="btn btn-success" onclick="runFullPipeline()">&#9654; 运行完整管线</button>
+      </div>
+      <div class="card" id="pipelineOutputCard" style="display:none">
+        <h3>运行输出</h3>
+        <div class="pipeline-output" id="pipelineOutput"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal 对话框 -->
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this)closeModal()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;min-width:400px;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+    <h3 id="modalTitle" style="margin-bottom:16px;color:var(--accent)"></h3>
+    <div id="modalBody"></div>
+    <div class="actions" style="margin-top:20px" id="modalActions"></div>
+  </div>
+</div>
+
+<script>
+const API = "";
+
+async function api(method, path, body) {
+  const opts = { method, headers: { "Accept": "application/json" } };
+  if (body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+  const res = await fetch(`${API}/api${path}`, opts);
+  return res.json();
+}
+
+function toast(msg, type = "info") {
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// -- 导航 --
+document.querySelectorAll("nav a").forEach(a => {
+  a.addEventListener("click", () => {
+    document.querySelectorAll("nav a").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(x => x.classList.remove("active"));
+    a.classList.add("active");
+    document.getElementById(`page-${a.dataset.page}`).classList.add("active");
+    loadPageData(a.dataset.page);
+  });
+});
+
+function loadPageData(page) {
+  if (page === "database_sources") loadConfig("database_sources");
+  else if (page === "rss_sources") loadConfig("rss_sources");
+  else if (page === "research_profile") loadConfig("research_profile");
+  else if (page === "workflow_rules") loadConfig("workflow_rules");
+  else if (page === "pubmed_pmc_search") loadConfig("pubmed_pmc_search");
+  else if (page === "screening_standards") loadConfig("screening_standards");
+  else if (page === "title_translation") loadConfig("title_translation");
+  else if (page === "preference_learning") loadConfig("preference_learning");
+  else if (page === "env") loadEnv();
+  else if (page === "dashboard") loadDashboard();
+}
+
+// -- 服务器状态 --
+async function checkStatus() {
+  try {
+    const r = await api("GET", "/status");
+    document.getElementById("statusDot").className = "dot online";
+    document.getElementById("statusText").textContent = "已连接";
+    return r;
+  } catch {
+    document.getElementById("statusDot").className = "dot offline";
+    document.getElementById("statusText").textContent = "断开";
+    return null;
+  }
+}
+
+// -- 仪表盘 --
+async function loadDashboard() {
+  const status = await checkStatus();
+  const stats = document.getElementById("dashboardStats");
+  const info = document.getElementById("projectInfo");
+  const cfgStatus = document.getElementById("configStatus");
+
+  if (!status) {
+    stats.innerHTML = '<div class="stat-card"><div class="num" style="color:var(--red)">!</div><div class="label">无法连接服务器</div></div>';
+    return;
+  }
+
+  info.innerHTML = `
+    <div class="form-row"><div><strong>项目根目录</strong><br><span style="font-size:13px;color:var(--text-dim)">${status.root}</span></div>
+    <div><strong>服务器端口</strong><br><span style="font-size:13px;color:var(--text-dim)">${status.port}</span></div></div>
+  `;
+
+  let cfgHtml = '<div class="grid-3">';
+  for (const [key, cfg] of Object.entries(status.configs)) {
+    cfgHtml += `<div class="source-card"><div class="info">${cfg.title} <small>${cfg.exists ? '<span class="tag green">存在</span>' : '<span class="tag orange">缺失</span>'}</small></div></div>`;
+  }
+  cfgHtml += "</div>";
+  cfgStatus.innerHTML = cfgHtml;
+
+  // 尝试加载上次运行报告获取统计
+  try {
+    const dirs = await api("GET", "/explorer/research_os/pipeline");
+    if (dirs.ok && dirs.files) {
+      const dayDirs = dirs.files.filter(f => f.isDir).sort((a,b) => b.name.localeCompare(a.name)).slice(0,3);
+      let reportRow = '<div class="dashboard-stats">';
+      for (const d of dayDirs) {
+        try {
+          const report = await api("GET", `/explorer/research_os/pipeline/${d.name}/run_report.json`);
+          if (report.ok && report.data) {
+            const r = JSON.parse(report.data);
+            const c = r.counts || {};
+            reportRow += `<div class="stat-card"><div class="num">${c.merged||0}</div><div class="label">${d.name} 总文献</div></div>`;
+            reportRow += `<div class="stat-card"><div class="num">${c.grade_counts?.A||0}</div><div class="label">A 级</div></div>`;
+            reportRow += `<div class="stat-card"><div class="num">${c.grade_counts?.B||0}</div><div class="label">B 级</div></div>`;
+            reportRow += `<div class="stat-card"><div class="num">${c.grade_counts?.C||0}</div><div class="label">C 级</div></div>`;
+          }
+        } catch {}
+      }
+      reportRow += '</div>';
+      if (reportRow.includes('stat-card')) {
+        document.getElementById("dashboardStats").innerHTML = reportRow;
+      }
+    }
+  } catch {}
+}
+
+// -- 通用加载/保存 --
+function editorId(name) { return `editor-${name}`; }
+
+async function loadConfig(name) {
+  const r = await api("GET", `/config/${name}`);
+  if (!r.ok) { toast(`加载 ${name} 失败: ${r.error}`, "error"); return; }
+
+  if (r.type === "markdown" || name === "screening_standards") {
+    const ta = document.getElementById(editorId(name));
+    if (ta) { ta.value = r.data; }
+    return;
+  }
+
+  const form = document.getElementById(`form-${name}`);
+  if (form) {
+    applyFormData(form, r.data);
+    return;
+  }
+
+  if (name === "workflow_rules" || name === "title_translation" || name === "preference_learning") {
+    const ta = document.getElementById(editorId(name));
+    if (ta) { ta.value = JSON.stringify(r.data, null, 2); }
+    return;
+  }
+}
+
+async function saveConfig(name) {
+  const info = { workflow_rules: "分级规则", title_translation: "翻译配置", preference_learning: "偏好学习配置",
+    database_sources: "数据库源配置", rss_sources: "RSS 订阅源", research_profile: "研究画像",
+    pubmed_pmc_search: "PubMed/PMC 检索", screening_standards: "筛选标准",
+    crossref_search: "Crossref 检索", cnki_import: "CNKI 导入配置" };
+
+  if (name === "screening_standards") {
+    const ta = document.getElementById(editorId(name));
+    if (!ta) return;
+    const r = await api("PUT", `/config/${name}`, { content: ta.value });
+    if (r.ok) { toast(`${info[name] || name} 保存成功`, "success"); } else { toast(`保存失败: ${r.error}`, "error"); }
+    return;
+  }
+
+  if (name === "workflow_rules" || name === "title_translation" || name === "preference_learning") {
+    const ta = document.getElementById(editorId(name));
+    if (!ta) return;
+    try {
+      const parsed = JSON.parse(ta.value);
+      const r = await api("PUT", `/config/${name}`, { data: parsed });
+      if (r.ok) { toast(`${info[name] || name} 保存成功`, "success"); } else { toast(`保存失败: ${r.error}`, "error"); }
+    } catch (e) { toast(`JSON 格式错误: ${e.message}`, "error"); }
+    return;
+  }
+
+  const form = document.getElementById(`form-${name}`);
+  if (!form) return;
+  const data = collectFormData(form);
+  const r = await api("PUT", `/config/${name}`, { data });
+  if (r.ok) { toast(`${info[name] || name} 保存成功`, "success"); } else { toast(`保存失败: ${r.error}`, "error"); }
+}
+
+// -- 表单工具 --
+function collectFormData(form) {
+  const data = {};
+  const inputs = form.querySelectorAll("[name]");
+  for (const el of inputs) {
+    const name = el.name;
+    const paths = name.split(".");
+    let current = data;
+    for (let i = 0; i < paths.length - 1; i++) {
+      if (!current[paths[i]]) current[paths[i]] = {};
+      current = current[paths[i]];
+    }
+    const key = paths[paths.length - 1];
+    if (el.type === "checkbox") {
+      if (el.hasAttribute("data-array")) {
+        if (!current[key]) current[key] = [];
+        if (el.checked) current[key].push(el.value);
+      } else {
+        current[key] = el.checked;
+      }
+    } else if (el.type === "number") {
+      current[key] = el.value ? Number(el.value) : 0;
+    } else {
+      current[key] = el.value;
+    }
+  }
+  return data;
+}
+
+function applyFormData(form, data) {
+  if (!data) return;
+  const inputs = form.querySelectorAll("[name]");
+  for (const el of inputs) {
+    const name = el.name;
+    const paths = name.split(".");
+    let current = data;
+    for (let i = 0; i < paths.length; i++) {
+      if (current == null) break;
+      current = current[paths[i]];
+    }
+    const val = current;
+    if (el.type === "checkbox") {
+      if (el.hasAttribute("data-array")) {
+        el.checked = Array.isArray(val) && val.includes(el.value);
+      } else {
+        el.checked = val === true;
+      }
+    } else if (el.type === "number") {
+      el.value = val != null ? val : "";
+    } else {
+      el.value = val != null ? val : "";
+    }
+  }
+}
+
+// -- 数据库源配置 --
+async function loadConfig_dbSources() {
+  const r = await api("GET", "/config/database_sources");
+  if (!r.ok) { toast("加载数据库源配置失败", "error"); return; }
+  const sources = r.data?.sources || {};
+  const html = [];
+  for (const [key, cfg] of Object.entries(sources)) {
+    const labels = { pubmed: "PubMed", pmc: "PMC", arxiv: "arXiv", semantic_scholar: "Semantic Scholar", dblp: "DBLP", crossref: "Crossref" };
+    const label = labels[key] || key;
+    const isEnabled = cfg.enabled !== false;
+    html.push(`<div class="card" id="db-${key}">
+      <div class="flex" style="justify-content:space-between">
+        <h3 style="margin:0">${label} <span class="tag ${isEnabled?'green':'orange'}">${isEnabled?'已启用':'已禁用'}</span></h3>
+        <label class="toggle-switch"><input type="checkbox" ${isEnabled?'checked':''} onchange="toggleDbSource('${key}',this.checked)"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="form-row-4 mt-8">
+        <div class="form-group"><label>days_back</label><input type="number" id="db-${key}-days_back" value="${cfg.days_back||7}"></div>
+        <div class="form-group"><label>max_results/limit</label><input type="number" id="db-${key}-limit" value="${cfg.max_results||cfg.limit||cfg.hits_per_page||100}"></div>
+      </div>
+      <div class="form-group"><label>检索式（query，填此将忽略 keywords）</label><input id="db-${key}-query" value="${cfg.query||''}"></div>
+      <div class="form-group"><label>required 关键词（每组内 OR，组间 AND）</label>
+        <textarea id="db-${key}-required" style="min-height:80px">${formatKeywords(cfg.keyword_groups?.required)}</textarea>
+        <div class="hint">每行一组，组内用逗号分隔。例如：<code>bearing, gearbox</code></div>
+      </div>
+      <div class="form-group"><label>optional 关键词（逗号分隔）</label>
+        <input id="db-${key}-optional" value="${(cfg.keyword_groups?.optional||[]).join(', ')}">
+      </div>
+      <div class="form-group"><label>negative 排除词（逗号分隔）</label>
+        <input id="db-${key}-negative" value="${(cfg.keyword_groups?.negative||[]).join(', ')}">
+      </div>
+    </div>`);
+  }
+  document.getElementById("dbSourcesContainer").innerHTML = html.join("");
+}
+
+function formatKeywords(groups) {
+  if (!Array.isArray(groups)) return "";
+  return groups.map(g => Array.isArray(g) ? g.join(", ") : g).join("\n");
+}
+
+function toggleDbSource(key, enabled) {
+  const card = document.getElementById(`db-${key}`);
+  if (card) {
+    const tag = card.querySelector(".tag");
+    if (tag) { tag.textContent = enabled ? "已启用" : "已禁用"; tag.className = `tag ${enabled?'green':'orange'}`; }
+  }
+}
+
+// Database sources save
+document.addEventListener("click", async (e) => {
+  const saveBtn = e.target.closest("#btn-save-database_sources");
+  if (!saveBtn) return;
+  const sources = {};
+  document.querySelectorAll("#dbSourcesContainer .card").forEach(card => {
+    const id = card.id.replace("db-", "");
+    const toggle = card.querySelector(".toggle-switch input");
+    const isEnabled = toggle ? toggle.checked : true;
+    const days_back = Number(card.querySelector("[id$='-days_back']")?.value || 7);
+    const limit = Number(card.querySelector("[id$='-limit']")?.value || 100);
+    const query = card.querySelector("[id$='-query']")?.value || "";
+    const requiredRaw = (card.querySelector("[id$='-required']")?.value || "").split("\n").filter(Boolean);
+    const required = requiredRaw.map(line => line.split(",").map(s => s.trim()).filter(Boolean));
+    const optional = (card.querySelector("[id$='-optional']")?.value || "").split(",").map(s => s.trim()).filter(Boolean);
+    const negative = (card.querySelector("[id$='-negative']")?.value || "").split(",").map(s => s.trim()).filter(Boolean);
+
+    sources[id] = { enabled: isEnabled, days_back, query, keyword_groups: { required, optional, negative } };
+    if (["arxiv"].includes(id)) { sources[id].max_results = limit; sources[id].sort_by = "submittedDate"; sources[id].sort_order = "descending"; }
+    else if (["semantic_scholar"].includes(id)) { sources[id].limit = limit; }
+    else if (["dblp"].includes(id)) { sources[id].hits_per_page = limit; }
+    else if (["crossref"].includes(id)) { sources[id].rows = limit; }
+    else if (["pubmed","pmc"].includes(id)) { sources[id].retmax = limit; sources[id].sort = "date"; sources[id].datetype = "pdat"; }
+  });
+
+  const r = await api("PUT", "/config/database_sources", { data: { version: 2, description: "统一多数据库检索配置", sources } });
+  if (r.ok) { toast("数据库源配置保存成功", "success"); loadConfig_dbSources(); }
+  else { toast(`保存失败: ${r.error}`, "error"); }
+});
+
+// -- RSS 源 --
+async function loadConfig_rss() {
+  const r = await api("GET", "/config/rss_sources");
+  if (!r.ok) return;
+  const sources = r.data?.sources || [];
+  renderRssSources(sources);
+  window._rssData = sources;
+}
+
+function renderRssSources(sources) {
+  let html = "";
+  sources.forEach((s, i) => {
+    html += `<div class="source-card">
+      <div class="info">
+        <strong>${s.name || "未命名"}</strong>
+        <small>${s.url}</small>
+      </div>
+      <div class="flex gap-4">
+        <label class="toggle-switch"><input type="checkbox" ${s.enabled!==false?'checked':''} onchange="updateRss(${i},'enabled',this.checked)"><span class="toggle-slider"></span></label>
+        <button class="btn btn-outline btn-sm" onclick="removeRss(${i})">✕</button>
+      </div>
+    </div>`;
+  });
+  html += `<div class="source-card" style="cursor:pointer;opacity:0.7" onclick="addRssSource()">
+    <div class="info" style="color:var(--accent)"><strong>+ 添加 RSS 源</strong></div>
+  </div>`;
+  document.getElementById("rssContainer").innerHTML = html;
+}
+
+function updateRss(idx, field, val) {
+  if (window._rssData && window._rssData[idx]) {
+    window._rssData[idx][field] = val;
+  }
+}
+
+function addRssSource() {
+  if (!window._rssData) window._rssData = [];
+  const name = prompt("期刊名称：");
+  if (!name) return;
+  const url = prompt("RSS 地址：");
+  if (!url) return;
+  window._rssData.push({ name, url, enabled: true });
+  renderRssSources(window._rssData);
+}
+
+function removeRss(idx) {
+  if (!window._rssData) return;
+  window._rssData.splice(idx, 1);
+  renderRssSources(window._rssData);
+}
+
+// -- Modal 对话框 --
+function showModal(title, bodyHtml, actionButtons) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalBody").innerHTML = bodyHtml;
+  const actions = document.getElementById("modalActions");
+  actions.innerHTML = "";
+  if (actionButtons) {
+    actionButtons.forEach(b => {
+      const btn = document.createElement("button");
+      btn.className = b.className || "btn btn-primary";
+      btn.textContent = b.text;
+      btn.onclick = b.onClick;
+      actions.appendChild(btn);
+    });
+  }
+  document.getElementById("modalOverlay").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modalOverlay").style.display = "none";
+}
+
+function modalAddRssSource() {
+  const name = document.getElementById("modal-rss-name")?.value?.trim();
+  const url = document.getElementById("modal-rss-url")?.value?.trim();
+  if (!name) { toast("请输入期刊名称", "error"); return; }
+  if (!url) { toast("请输入 RSS 地址", "error"); return; }
+  if (!window._rssData) window._rssData = [];
+  window._rssData.push({ name, url, enabled: true });
+  renderRssSources(window._rssData);
+  closeModal();
+  toast("已添加: " + name, "success");
+}
+
+function addRssSource() {
+  showModal("添加 RSS 源",
+    `<div class="form-group"><label>期刊名称</label><input id="modal-rss-name" placeholder="例如：Nature Medicine" autofocus></div>
+     <div class="form-group"><label>RSS 地址</label><input id="modal-rss-url" placeholder="例如：https://www.nature.com/nm.rss"></div>`,
+    [
+      { text: "取消", className: "btn btn-outline", onClick: closeModal },
+      { text: "添加", className: "btn btn-primary", onClick: modalAddRssSource }
+    ]
+  );
+  setTimeout(() => document.getElementById("modal-rss-name")?.focus(), 100);
+}
+
+// Override save for RSS
+document.addEventListener("click", async (e) => {
+  const saveBtn = e.target.closest("#btn-save-rss_sources");
+  if (!saveBtn) return;
+  const sources = (window._rssData || []).map(s => ({ name: s.name, url: s.url, enabled: s.enabled !== false }));
+  const r = await api("PUT", "/config/rss_sources", { data: { version: 1, description: "RSS 订阅源列表", sources } });
+  if (r.ok) { toast("RSS 源保存成功", "success"); } else { toast(`保存失败: ${r.error}`, "error"); }
+});
+
+// CNKI save
+document.addEventListener("click", async (e) => {
+  const saveBtn = e.target.closest("#btn-save-cnki_import");
+  if (!saveBtn) return;
+  const toggle = document.querySelector("#cnkiContainer .toggle-switch input");
+  const enabled = toggle ? toggle.checked : true;
+  const formatHint = document.getElementById("cnki-format")?.value || "auto";
+  const pathInputs = document.querySelectorAll("#cnkiPathList input");
+  const paths = [];
+  pathInputs.forEach(input => { const v = input.value.trim(); if (v) paths.push(v); });
+  const r = await api("PUT", "/config/cnki_import", { data: { version: 1, description: "知网手动导入配置", enabled, format_hint: formatHint, paths } });
+  if (r.ok) { toast("知网配置保存成功", "success"); loadConfigCnki(); } else { toast(`保存失败: ${r.error}`, "error"); }
+});
+
+// -- 研究画像 --
+async function loadConfig_profile() {
+  const r = await api("GET", "/config/research_profile");
+  if (!r.ok) return;
+  const d = r.data || {};
+  const html = `
+  <div class="card">
+    <h3>基本信息</h3>
+    <div class="form-row">
+      <div class="form-group"><label>profile_id</label><input name="profile_id" value="${d.profile_id||''}"></div>
+      <div class="form-group"><label>domain</label><input name="domain" value="${d.domain||'engineering'}"></div>
+      <div class="form-group"><label>paper_type</label><input name="paper_type" value="${d.paper_type||''}"></div>
+      <div class="form-group"><label>language_mode</label><select name="language_mode"><option ${d.language_mode==='zh_en_bilingual'?'selected':''} value="zh_en_bilingual">中英双语</option><option ${d.language_mode==='en'?'selected':''} value="en">仅英文</option><option ${d.language_mode==='zh'?'selected':''} value="zh">仅中文</option></select></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>默认来源</h3>
+    <div class="checkbox-group" id="profileSources">
+      ${["rss","pubmed","crossref","cnki_import","arxiv","semantic_scholar","dblp"].map(s => `<label class="source-toggle"><input type="checkbox" ${(d.default_sources||[]).includes(s)?'checked':''} value="${s}" data-array="true" name="default_sources"> ${s}</label>`).join("")}
+    </div>
+  </div>
+  <div class="card">
+    <h3>输出配置</h3>
+    <div class="form-row">
+      <div class="form-group"><label>citation_style</label><select name="citation_style"><option ${d.citation_style==='ieee'?'selected':''} value="ieee">IEEE</option><option ${d.citation_style==='apa'?'selected':''} value="apa">APA</option><option ${d.citation_style==='gbt7714'?'selected':''} value="gbt7714">GB/T 7714</option></select></div>
+      <div class="form-group"><label>bibliography_backend</label><input name="bibliography_backend" value="${d.bibliography_backend||'zotero_mcp'}"></div>
+    </div>
+  </div>`;
+
+  document.getElementById("profileContainer").innerHTML = html;
+  // Re-bind form
+  const form = document.createElement("form");
+  form.id = "form-research_profile";
+  form.innerHTML = html;
+  document.getElementById("profileContainer").innerHTML = "";
+  document.getElementById("profileContainer").appendChild(form);
+  applyFormData(form, d);
+}
+
+// -- 知网导入 --
+async function loadConfigCnki() {
+  const r = await api("GET", "/config/cnki_import");
+  if (!r.ok) { toast("加载知网配置失败", "error"); return; }
+  const d = r.data || {};
+  const paths = Array.isArray(d.paths) ? d.paths : [];
+  window._cnkiPaths = [...paths];
+  const enabled = d.enabled !== false;
+  const formatHint = d.format_hint || "auto";
+  const html = `
+  <div class="card">
+    <div class="flex" style="justify-content:space-between;margin-bottom:12px">
+      <h3 style="margin:0">知网导入 <span class="tag ${enabled?'green':'orange'}">${enabled?'已启用':'已禁用'}</span></h3>
+      <label class="toggle-switch"><input type="checkbox" ${enabled?'checked':''} onchange="document.querySelector('#cnkiContainer .tag').textContent=this.checked?'已启用':'已禁用';document.querySelector('#cnkiContainer .tag').className='tag '+(this.checked?'green':'orange')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="form-group"><label>格式</label>
+      <select id="cnki-format">
+        <option value="auto" ${formatHint==='auto'?'selected':''}>自动检测</option>
+        <option value="csv" ${formatHint==='csv'?'selected':''}>CSV (UTF-8)</option>
+        <option value="csv_gbk" ${formatHint==='csv_gbk'?'selected':''}>CSV (GBK/GB2312)</option>
+        <option value="txt" ${formatHint==='txt'?'selected':''}>TXT 引用格式</option>
+      </select>
+      <div class="hint">知网导出时建议选择「CSV (UTF-8)」或「TXT 引用格式」</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>导入文件路径</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">文件路径相对于项目根目录，支持 .csv 和 .txt 格式</p>
+    <div id="cnkiPathList"></div>
+    <div class="actions">
+      <button class="btn btn-outline" onclick="addCnkiPath()">+ 添加路径</button>
+    </div>
+  </div>`;
+  document.getElementById("cnkiContainer").innerHTML = html;
+  renderCnkiPaths();
+}
+
+function renderCnkiPaths() {
+  const paths = window._cnkiPaths || [];
+  const list = document.getElementById("cnkiPathList");
+  if (!list) return;
+  let html = "";
+  paths.forEach((p, i) => {
+    html += `<div class="source-card" style="display:flex;align-items:center;gap:8px">
+      <input id="cnki-path-${i}" value="${p}" style="flex:1;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+      <button class="btn btn-outline btn-sm" onclick="removeCnkiPath(${i})">✕</button>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function addCnkiPath() {
+  if (!window._cnkiPaths) window._cnkiPaths = [];
+  window._cnkiPaths.push("");
+  renderCnkiPaths();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll("#cnkiPathList input");
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 100);
+}
+
+function removeCnkiPath(idx) {
+  if (!window._cnkiPaths) return;
+  window._cnkiPaths.splice(idx, 1);
+  renderCnkiPaths();
+}
+
+// -- PubMed/PMC --
+async function loadConfig_pubmed() {
+  const r = await api("GET", "/config/pubmed_pmc_search");
+  if (!r.ok) return;
+  const d = r.data || {};
+  const html = `
+  <div class="card">
+    <div class="form-row-4">
+      <div class="form-group"><label>days_back</label><input type="number" name="days_back" value="${d.days_back||7}"></div>
+      <div class="form-group"><label>retmax</label><input type="number" name="retmax" value="${d.retmax||300}"></div>
+      <div class="form-group"><label>sort</label><select name="sort"><option ${d.sort==='date'?'selected':''} value="date">date</option><option ${d.sort==='relevance'?'selected':''} value="relevance">relevance</option></select></div>
+      <div class="form-group"><label>datetype</label><select name="datetype"><option ${d.datetype==='pdat'?'selected':''} value="pdat">pdat</option><option ${d.datetype==='edat'?'selected':''} value="edat">edat</option></select></div>
+    </div>
+    <div class="form-group"><label>数据库</label><div class="checkbox-group">
+      <label><input type="checkbox" name="databases" value="pubmed" ${(d.databases||[]).includes('pubmed')?'checked':''}> PubMed</label>
+      <label><input type="checkbox" name="databases" value="pmc" ${(d.databases||[]).includes('pmc')?'checked':''}> PMC</label>
+    </div></div>
+    <div class="form-group"><label>检索式（query）</label><textarea name="query" style="min-height:80px">${d.query||''}</textarea></div>
+    <div class="card" style="background:var(--bg)">
+      <h3>keyword_groups（query 为空时生效）</h3>
+      <div class="form-group"><label>required（每组内 OR，组间 AND）</label><textarea name="keyword_groups.required_str" style="min-height:50px">${formatKeywords(d.keyword_groups?.required)}</textarea></div>
+      <div class="form-group"><label>optional（逗号分隔）</label><input name="keyword_groups.optional_str" value="${(d.keyword_groups?.optional||[]).join(', ')}"></div>
+      <div class="form-group"><label>negative（逗号分隔）</label><input name="keyword_groups.negative_str" value="${(d.keyword_groups?.negative||[]).join(', ')}"></div>
+    </div>
+  </div>`;
+  const container = document.getElementById("pubmedContainer");
+  container.innerHTML = "";
+  const form = document.createElement("form");
+  form.id = "form-pubmed_pmc_search";
+  form.innerHTML = html;
+  container.appendChild(form);
+}
+
+// -- 环境变量 --
+async function loadEnv() {
+  const r = await api("GET", "/env");
+  if (r.ok) {
+    document.getElementById("editor-env").value = r.data;
+  }
+}
+
+async function saveEnv() {
+  const val = document.getElementById("editor-env").value;
+  const r = await api("PUT", "/env", { content: val });
+  if (r.ok) { toast(".env 保存成功", "success"); } else { toast(`保存失败: ${r.error}`, "error"); }
+}
+
+// -- 筛选标准预览 --
+let previewMode = false;
+function togglePreview() {
+  previewMode = !previewMode;
+  const ta = document.getElementById("editor-screening_standards");
+  const preview = document.getElementById("preview-screening_standards");
+  if (previewMode) {
+    ta.style.display = "none";
+    preview.style.display = "block";
+    preview.innerHTML = simpleMarkdown(ta.value);
+  } else {
+    ta.style.display = "block";
+    preview.style.display = "none";
+  }
+}
+
+function simpleMarkdown(text) {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+    .replace(/^\* (.+)$/gm, "<li>$1</li>")
+    .replace(/^---$/gm, "<hr>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n/g, "<br>");
+}
+
+// -- 管线运行 --
+async function runStage1() {
+  const btn = document.querySelector("#page-pipeline .card:first-child .btn");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 运行中...';
+  document.getElementById("pipelineOutputCard").style.display = "block";
+  const out = document.getElementById("pipelineOutput");
+  out.textContent = "Stage 1 运行中，请稍候...\n";
+  try {
+    const r = await api("POST", "/pipeline/stage1");
+    renderPipelineResult(out, r, "Stage 1");
+  } catch (e) {
+    out.textContent = `错误: ${e.message}`;
+    toast("运行失败", "error");
+  }
+  btn.disabled = false; btn.innerHTML = "&#9654; 运行 Stage 1";
+}
+
+async function runFullPipeline() {
+  const btn = document.querySelector("#page-pipeline .card:nth-child(3) .btn");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 运行中...';
+  document.getElementById("pipelineOutputCard").style.display = "block";
+  const out = document.getElementById("pipelineOutput");
+  out.textContent = "完整管线运行中，请稍候...\n";
+  try {
+    const r = await api("POST", "/pipeline/run");
+    renderPipelineResult(out, r, "完整管线");
+  } catch (e) {
+    out.textContent = `错误: ${e.message}`;
+    toast("运行失败", "error");
+  }
+  btn.disabled = false; btn.innerHTML = "&#9654; 运行完整管线";
+}
+
+function renderPipelineResult(out, r, label) {
+  const parts = [];
+  const s = r.summary || {};
+  const hasData = s.counts || s.counters || s.total != null;
+
+  if (r.ok === false && !hasData) {
+    parts.push(`❌ ${label} 失败`);
+    if (r.error) parts.push(`错误: ${r.error}`);
+    if (r.stderr) parts.push(`stderr: ${r.stderr.slice(-500)}`);
+    toast(`${label} 失败`, "error");
+  } else {
+    if (r.ok !== false) parts.push(`✅ ${label} 完成`);
+    else parts.push(`⚠️ ${label} 部分完成（见下方数据）`);
+    if (s.counts) {
+      const c = s.counts;
+      parts.push(`RSS: ${c.rss_raw ?? "?"} | Crossref: ${c.crossref_raw ?? "?"} | arXiv: ${c.arxiv_raw ?? "?"} | Semantic Scholar: ${c.semantic_scholar_raw ?? "?"}`);
+      parts.push(`合并: ${c.merged ?? "?"} 篇 | A: ${c.grade_counts?.A ?? 0} | B: ${c.grade_counts?.B ?? 0} | C: ${c.grade_counts?.C ?? 0} | D: ${c.grade_counts?.D ?? 0}`);
+      if (c.abc_writeback_candidates != null) parts.push(`Zotero 写回候选: ${c.abc_writeback_candidates} 篇`);
+    }
+    if (s.counters) {
+      const c = s.counters;
+      parts.push(`Zotero 写入: ${c.created ?? 0} 篇 | 已有: ${c.reused_existing ?? 0} | 失败: ${c.failed ?? 0}`);
+    }
+    if (s.stages) {
+      parts.push(`阶段状态: ${s.stages.map(st => `${st.name}=${st.status}${st.exitCode != null ? `(${st.exitCode})` : ""}`).join(" | ")}`);
+    }
+    if (s.total != null) parts.push(`翻译: 共 ${s.total} 篇, 成功 ${s.success_count ?? 0}, 失败 ${s.failure_count ?? 0}`);
+    if (s.new_items_in_zotero != null) parts.push(`本次新增到 Zotero: ${s.new_items_in_zotero} 篇`);
+    if (s.pool_duplicates != null) parts.push(`文献池去重（已有）: ${s.pool_duplicates} 篇`);
+    if (s.connector_ok != null) parts.push(`Zotero 连接: ${s.connector_ok ? "正常" : "问题"}`);
+    if (s._raw_lines) parts.push(`(无法解析输出结构，显示末尾 ${s._raw_lines.length} 行)`, ...s._raw_lines);
+    if (s._raw_tail) parts.push(`(无法解析输出)`, s._raw_tail);
+    toast(`${label} 完成`, r.ok !== false ? "success" : "info");
+  }
+  out.textContent = parts.join("\n");
+
+  // 如有原始输出预览，添加"查看详情"折叠
+  if (r.full_output_preview || r.stdout_tail) {
+    const detailId = "pipeline-detail-" + Date.now();
+    const detailLink = document.createElement("div");
+    detailLink.style.marginTop = "12px";
+    const toggle = document.createElement("a");
+    toggle.href = "#";
+    toggle.style.color = "var(--accent)";
+    toggle.style.fontSize = "13px";
+    toggle.textContent = "查看原始输出";
+    toggle.onclick = (e) => {
+      e.preventDefault();
+      const detail = document.getElementById(detailId);
+      if (detail.style.display === "none") {
+        detail.style.display = "block";
+        toggle.textContent = "隐藏原始输出";
+      } else {
+        detail.style.display = "none";
+        toggle.textContent = "查看原始输出";
+      }
+    };
+    detailLink.appendChild(toggle);
+
+    const detailDiv = document.createElement("pre");
+    detailDiv.id = detailId;
+    detailDiv.style.display = "none";
+    detailDiv.style.marginTop = "8px";
+    detailDiv.style.fontSize = "11px";
+    detailDiv.style.maxHeight = "300px";
+    detailDiv.style.overflow = "auto";
+    detailDiv.style.background = "#000";
+    detailDiv.style.padding = "8px";
+    detailDiv.style.borderRadius = "4px";
+    detailDiv.style.color = "#0f0";
+    detailDiv.textContent = (r.full_output_preview || r.stdout_tail || "").slice(0, 5000);
+
+    out.parentNode.insertBefore(detailLink, out.nextSibling);
+    out.parentNode.insertBefore(detailDiv, detailLink.nextSibling);
+  }
+}
+
+// -- 页面切换时加载对应数据 --
+const pageLoaders = {
+  dashboard: loadDashboard,
+  database_sources: loadConfig_dbSources,
+  rss_sources: loadConfig_rss,
+  research_profile: loadConfig_profile,
+  workflow_rules: () => loadConfig("workflow_rules"),
+  pubmed_pmc_search: loadConfig_pubmed,
+  cnki_import: loadConfigCnki,
+  screening_standards: () => loadConfig("screening_standards"),
+  title_translation: () => loadConfig("title_translation"),
+  preference_learning: () => loadConfig("preference_learning"),
+  env: loadEnv,
+};
+
+// Override loadPageData
+const origLoad = loadPageData;
+loadPageData = function(page) {
+  if (pageLoaders[page]) pageLoaders[page]();
+  else origLoad(page);
+};
+
+// -- 初始化 --
+checkStatus().then(status => {
+  if (status) loadDashboard();
+});
+</script>
+</body>
+</html>

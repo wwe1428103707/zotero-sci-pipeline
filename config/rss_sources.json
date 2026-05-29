@@ -1,8 +1,16 @@
 {
   "version": 1,
-  "description": "用户可编辑：RSS 订阅源列表。enabled=false 可临时停用某个源。",
+  "description": "RSS 订阅源列表",
   "sources": [
-    { "name": "Nature", "url": "https://www.nature.com/nature.rss", "enabled": true },
-    { "name": "Science", "url": "https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=science", "enabled": true },
+    {
+      "name": "Nature",
+      "url": "https://www.nature.com/nature.rss",
+      "enabled": true
+    },
+    {
+      "name": "Science",
+      "url": "https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=science",
+      "enabled": true
+    }
   ]
 }

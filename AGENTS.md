@@ -1,4 +1,4 @@
-# Medical Literature Workflow Agent Reference
+# Research Literature Workflow Agent Reference
 
 ## General Execution Environment And Permission Boundaries
 
@@ -18,10 +18,10 @@
 
 ## Goal
 
-Operate a two-day medical literature pipeline with parallel entry channels:
+Operate a two-day research literature pipeline with parallel entry channels:
 
 - RSS ingestion
-- PubMed/PMC retrieval via `academic-search`
+- database retrieval via the current repository adapters and compatibility config
 
 Then run unified dedup, triage, Zotero writeback, translation backfill, and workbook export in the existing Research OS structure.
 
@@ -72,8 +72,8 @@ Cadence defaults:
 - PowerShell gate requires `pwsh >= 7.0.0` (exact pinning like `7.6.1` is not allowed unless explicitly required by a future task).
 - Never use Windows PowerShell 5.1.
 - Never directly edit `E:\zotero\zotero.sqlite`.
-- PubMed/PMC only for database retrieval.
-- Do not use Google Scholar/CNKI/IEEE/ACM in this workflow.
+- Current repository database retrieval keeps the compatibility file `config/pubmed_pmc_search.json`; do not silently replace it with a new config path.
+- Do not add undocumented scraping paths or unapproved external database automation without explicit user approval.
 - Do not fabricate references, page numbers, doses, stats, or experimental outcomes.
 - PDF acquisition is out of automation scope. Users handle PDFs manually in Zotero.
 - Title translation secrets must come only from `TITLE_TRANSLATION_API_KEY` in the environment, a local `.env`, or injected automation secret storage.
@@ -89,7 +89,7 @@ Cadence defaults:
 - Pipeline state weekly/day layout: `research_os/<ISO-week>/<yy.M.d>/pipeline`
 - Final workbook export root: `<YOUR_PROJECT_ROOT>/research_os/文献评价`
 - User-editable RSS sources: `config/rss_sources.json`
-- User-editable PubMed/PMC search conditions: `config/pubmed_pmc_search.json`
+- User-editable database search conditions (compatibility file name): `config/pubmed_pmc_search.json`
 - User-editable workflow triage/feedback rule config: `config/workflow_rules.json`
 - Long-lived screening standard text: `research_os/文献评价/screening_standards.md`
 - User-facing manual review root: `research_os/文献评价`
@@ -176,7 +176,7 @@ Internal stage order:
      - `needs_more_feedback`
    - a single evidence row may become `tentative` or `needs_more_feedback`, but never `stable`
    - conflicting positive/negative evidence on the same topic family must be represented as `ambiguous`, not silently generalized
-   - negative preferences must remain bounded by caveats such as study type, evidence level, or disease context; do not broadly exclude an entire topic without repeated scoped evidence
+   - negative preferences must remain bounded by caveats such as study type, evidence level, or domain context; do not broadly exclude an entire topic without repeated scoped evidence
    - output machine-readable audit file: `pipeline/preference_learning_audit.json`
    - previous-cycle workbook must be read via unified Node/JS reader (`tools/lib/review_workbook_reader.mjs`) shared by formal flow and dry-run/diagnostic flow
    - Python is not the primary path for feedback workbook reading; `python_failed` must not block preference learning
@@ -194,14 +194,14 @@ Internal stage order:
    - semantic results are for preference evidence enrichment only
    - semantic results must not expand today's candidate pool
    - semantic neighbors are not pseudo-labeled feedback samples
-4. Build PubMed/PMC query pack:
+4. Build database query pack:
    - read `config/pubmed_pmc_search.json`
    - default `days_back` is `7` when missing or invalid
-   - date range must be present in PubMed/PMC request parameters (`datetype`, `mindate`, `maxdate`), not only applied after import
-   - positive terms / negative terms / MeSH terms / study type filters may be maintained in the config as the search strategy evolves
+   - date range must be present in adapter request parameters when the active retrieval path supports it
+   - positive terms / negative terms / subject terms / study type filters may be maintained in the config as the search strategy evolves
 5. Parallel retrieval:
    - RSS channel reads `config/rss_sources.json`
-   - PubMed/PMC channel reads `config/pubmed_pmc_search.json`
+   - database channel reads `config/pubmed_pmc_search.json`
 6. Merge + dedup:
    - DOI > PMID/PMCID > URL > normalized title
 7. A/B/C/D triage:
@@ -224,7 +224,7 @@ Internal stage order:
 11. Historical collection modification:
    - forbidden during ordinary Stage 1-4 writeback unless an explicit feedback-correction command is requested
    - explicit correction command: `node tools/zotero_feedback_collection_corrections.mjs`
-   - feedback correction must use Zotero MCP only; never access `zotero.sqlite`, move PDFs, delete attachments, or fetch RSS/PubMed/PMC
+   - feedback correction must use Zotero MCP only; never access `zotero.sqlite`, move PDFs, delete attachments, or fetch RSS/database sources
    - match priority for correction: stable itemKey/ID from local pipeline JSON, then translated title, then English title, then Zotero MCP `search_library` exact English-title fallback
    - if local pipeline records contain duplicate title matches, resolve only when Zotero MCP exact title search returns a single item; otherwise keep conflict/manual review
    - `drop` correction target is `文献池/待删除`: add the item there, then remove it from the original day grade collection; do not delete the Zotero item automatically unless a separate explicit delete mode is requested and verified
@@ -242,11 +242,11 @@ Internal stage order:
 - The command must not be part of the default scheduled/manual literature workflow.
 - Default mode is dry-run and writes `research_os/run_manifests/historical_feedback_archive_dry_run.json`.
 - Actual archive materialization requires explicit `--apply`.
-- The archive command reads existing local pipeline JSON and review workbooks only; it must not fetch RSS/PubMed/PMC, write Zotero, start Zotero/Ollama, access `zotero.sqlite`, delete files, or overwrite existing targets.
+- The archive command reads existing local pipeline JSON and review workbooks only; it must not fetch RSS/database sources, write Zotero, start Zotero/Ollama, access `zotero.sqlite`, delete files, or overwrite existing targets.
 
 ## Fallback Policy
 
-- If PubMed/PMC retrieval fails: continue with RSS and log the failure.
+- If database retrieval fails: continue with RSS and log the failure.
 - If Zotero connector is unavailable: continue Excel outputs, skip writeback, and log reason.
 - If translation fails for some ABC items: keep the English title for export, log failures, and continue.
 - If previous-day title translation is missing for some feedback rows: fallback to English title and mark uncertainty in preference-learning summary (do not over-generalize).
@@ -255,7 +255,7 @@ Internal stage order:
 
 ## Global XLSX Export Policy
 
-- For all Research OS `.xlsx` outputs, default export path is `spreadsheets_skill` via the Codex `Spreadsheets` skill (or a unified spreadsheet adapter that calls the same runtime capability).
+- For all Research OS `.xlsx` outputs, default export path is `spreadsheets_skill` via the current runtime spreadsheet capability (or a unified spreadsheet adapter that calls the same runtime capability).
 - Scope is limited to final user-facing workbooks: `隔日报.xlsx` and `双周报.xlsx`.
 - Export fallback order is fixed and auditable:
   1. `spreadsheets_skill`
@@ -352,7 +352,7 @@ Internal stage order:
 
 ## MCP Preflight Contract
 
-- Before any four-stage Zotero workflow run, the Agent layer must first trigger Zotero GUI startup through Desktop Commander MCP using the currently exposed tool `mcp__desktop_commander__.start_process` with fixed command `schtasks /Run /TN StartZoteroForCodexOnly` (or `cmd /c schtasks /Run /TN StartZoteroForCodexOnly` when needed by tool shell semantics), wait 3000ms, then probe Zotero MCP readiness.
+- Before any four-stage Zotero workflow run, the Agent layer must first trigger Zotero GUI startup through Desktop Commander MCP using the currently exposed tool `mcp__desktop_commander__.start_process` with fixed command `schtasks /Run /TN StartZoteroForCodexOnly` (legacy scheduled-task name, or `cmd /c schtasks /Run /TN StartZoteroForCodexOnly` when needed by tool shell semantics), wait 3000ms, then probe Zotero MCP readiness.
 - Cron/local automation fallback: if a standalone scheduled automation does not expose Desktop Commander, it may run only the same fixed command `schtasks /Run /TN StartZoteroForCodexOnly` via local shell, then must still set `ZOTERO_EXTERNAL_LAUNCHER=desktop_commander` so Stage2/Stage3 helpers remain readiness-only.
 - Do not hardcode arbitrary `execute_command` launch paths for this workflow because tool exposure can differ by session.
 - Do not pass arbitrary user-provided command strings to Desktop Commander for Zotero startup; only the fixed scheduled-task command is allowed.
@@ -370,7 +370,7 @@ Internal stage order:
 - If preflight fails, scripts must mark stage failure in `run_report.json` and must not claim writeback/backfill success.
 - MCP readiness probe URL must be `process.env.ZOTERO_MCP_URL || process.env.MCP_URL || "http://127.0.0.1:23120/mcp"` and use JSON-RPC `get_collections` probe before Stage 2/3.
 - Agent/automation startup order is mandatory:
-  1. Agent tool `mcp__desktop_commander__.start_process` runs `schtasks /Run /TN StartZoteroForCodexOnly` (or `cmd /c ...` only if tool shell semantics require it).
+  1. Agent tool `mcp__desktop_commander__.start_process` runs `schtasks /Run /TN StartZoteroForCodexOnly` (legacy task name, or `cmd /c ...` only if tool shell semantics require it).
      - In standalone cron/local automation only, if Desktop Commander is not exposed, run the exact same `schtasks /Run /TN StartZoteroForCodexOnly` command via local shell.
   2. Wait 3000ms.
   3. Set `ZOTERO_EXTERNAL_LAUNCHER=desktop_commander`.

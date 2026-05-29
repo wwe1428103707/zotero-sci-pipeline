@@ -3,7 +3,8 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { buildSkillAlignmentMatrix } from "./lib/research_os_exports.mjs";
-import { buildFinalExportPayload } from "./lib/finalize_exports_support.mjs";
+import { buildFinalExportPayload, buildStage4ExportAudit } from "./lib/finalize_exports_support.mjs";
+import { buildPaperAssetPayload, writePaperAssets } from "./lib/paper_export_support.mjs";
 import {
   EXPORT_METHODS,
   detectSpreadsheetsSkillAvailability,
@@ -11,6 +12,7 @@ import {
 } from "./lib/spreadsheet_adapter.mjs";
 import { loadTranslationCache } from "./lib/title_translation_support.mjs";
 import { buildRuntimeConfig } from "./lib/runtime_config.mjs";
+import { loadResearchProfile } from "./lib/literature_config.mjs";
 
 const RUNTIME = buildRuntimeConfig();
 const ROOT = RUNTIME.projectRoot;
@@ -80,6 +82,7 @@ export async function finalizeResearchOsExports() {
     preferenceLearningAudit = {};
   }
   const translationCache = await loadTranslationCache(RUNTIME.translationCachePath);
+  const researchProfile = loadResearchProfile({ root: ROOT }).config;
 
   const finalPayload = buildFinalExportPayload({
     writebackReady,
@@ -109,12 +112,28 @@ export async function finalizeResearchOsExports() {
       }),
     },
   });
+  const paperPayload = buildPaperAssetPayload({
+    date: dateStr,
+    triaged: finalPayload.triaged,
+    reportContext: finalPayload.reportContext,
+  });
 
   await fs.mkdir(reviewDayDir, { recursive: true });
   await fs.writeFile(sourcePath, JSON.stringify({ date: dateStr, triaged: finalPayload.triaged, reportContext: finalPayload.reportContext }, null, 2), "utf8");
+  const paperAssetOutputs = await writePaperAssets({
+    outputDir: reviewDayDir,
+    payload: paperPayload,
+    options: {
+      profile: researchProfile.output_profiles?.[0] || "sci_generic_engineering",
+      paperTitleZh: `${dateStr} 工科论文写作草稿`,
+      paperTitleEn: `${dateStr} Engineering Research Draft`,
+    },
+  });
 
   const skillAvailability = await detectSpreadsheetsSkillAvailability();
   const fallbackChain = [EXPORT_METHODS.SPREADSHEETS_SKILL, EXPORT_METHODS.NODE_FALLBACK, EXPORT_METHODS.PYTHON_SPAWN_LEGACY, EXPORT_METHODS.MANUAL_REQUIRED];
+  const exportInputFiles = [writebackReadyPath, backfillPath, writebackSummaryPath, runReportPath, sourcePath];
+  const exportGeneratedAt = new Date().toISOString();
 
   let exportAudit;
   if (skillAvailability.available) {
@@ -130,65 +149,33 @@ export async function finalizeResearchOsExports() {
     if (!Array.isArray(res.daily_workbook_sheets) || res.daily_workbook_sheets.length !== 1 || res.daily_workbook_sheets[0] !== "每日反馈") {
       throw new Error("DAILY_FEEDBACK_SHEET_EXPORT_INCOMPLETE");
     }
-    exportAudit = {
-      stage4_export_status: "success",
-      export_method: EXPORT_METHODS.SPREADSHEETS_SKILL,
-      export_skill: "Spreadsheets",
-      spreadsheets_skill_available: true,
-      export_root: REVIEW_ROOT,
-      requested_output_path: requestedOutputPath,
-      actual_output_path: res.outputs?.every_other_day_report || null,
-      desktop_export_disabled: true,
-      export_input_files: [writebackReadyPath, backfillPath, writebackSummaryPath, runReportPath, sourcePath],
-      export_rows_count: res.rows_count,
-      export_excluded_d_count: Number(runReport?.counts?.d_skipped || res.excluded_d_count || 0),
-      export_writeback_failures_count: Array.isArray(writebackSummary?.failures) ? writebackSummary.failures.length : 0,
-      export_translation_failures_count: Number(backfillReport?.failure_count || 0),
-      export_error: null,
-      export_degraded: false,
-      export_fallback_chain: fallbackChain,
-      final_xlsx_outputs: ["隔日报.xlsx", "双周报.xlsx"],
-      export_generated_at: new Date().toISOString(),
-      manual_required: false,
-      export_outputs: res.outputs,
-      daily_workbook_sheets: res.daily_workbook_sheets || ["每日反馈"],
-      standard_summary_sheet_exported: Boolean(res.standard_summary_sheet_exported),
-      standard_summary_sheet_name: res.standard_summary_sheet_name || "当前筛选标准摘要",
-      standard_summary_sheet_schema: res.standard_summary_sheet_schema || "",
-      standard_summary_generated: Boolean(res.standard_summary_generated),
-      standard_summary_generated_from_fallback: Boolean(res.standard_summary_generated_from_fallback),
-      standard_summary_unavailable: Boolean(res.standard_summary_unavailable),
-      standard_summary_user_feedback_columns_present: Boolean(res.standard_summary_user_feedback_columns_present),
-    };
+    exportAudit = buildStage4ExportAudit({
+      mode: "success",
+      reviewRoot: REVIEW_ROOT,
+      requestedOutputPath,
+      exportInputFiles,
+      writebackSummary,
+      backfillReport,
+      runReport,
+      fallbackChain,
+      generatedAt: exportGeneratedAt,
+      paperAssetOutputs,
+      result: res,
+    });
   } else {
-    exportAudit = {
-      stage4_export_status: "failed",
-      export_method: EXPORT_METHODS.MANUAL_REQUIRED,
-      export_skill: null,
-      spreadsheets_skill_available: false,
-      spreadsheets_skill_unavailable_reason: skillAvailability.reason,
-      export_output_path: null,
-      export_root: REVIEW_ROOT,
-      requested_output_path: requestedOutputPath,
-      actual_output_path: null,
-      desktop_export_disabled: true,
-      export_input_files: [writebackReadyPath, backfillPath, writebackSummaryPath, runReportPath, sourcePath],
-      export_rows_count: 0,
-      export_excluded_d_count: Number(runReport?.counts?.d_skipped || 0),
-      export_writeback_failures_count: Array.isArray(writebackSummary?.failures) ? writebackSummary.failures.length : 0,
-      export_translation_failures_count: Number(backfillReport?.failure_count || 0),
-      export_error: "Spreadsheets skill unavailable",
-      export_degraded: true,
-      export_degrade_reason: "spreadsheets_skill_unavailable",
-      export_fallback_chain: fallbackChain,
-      final_xlsx_outputs: ["隔日报.xlsx", "双周报.xlsx"],
-      export_generated_at: new Date().toISOString(),
-      manual_required: true,
-      manual_steps: [
-        "Ensure @oai/artifact-tool is available in Codex runtime.",
-        "Rerun: node tools/finalize_research_os_exports.mjs",
-      ],
-    };
+    exportAudit = buildStage4ExportAudit({
+      mode: "manual_required",
+      reviewRoot: REVIEW_ROOT,
+      requestedOutputPath,
+      exportInputFiles,
+      writebackSummary,
+      backfillReport,
+      runReport,
+      fallbackChain,
+      generatedAt: exportGeneratedAt,
+      paperAssetOutputs,
+      skillAvailability,
+    });
     throw new Error(`SPREADSHEETS_SKILL_UNAVAILABLE: ${skillAvailability.reason}`);
   }
 

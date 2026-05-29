@@ -3,8 +3,11 @@
 这里集中放置用户可直接修改的配置、规则和参数。
 
 - `rss_sources.json`: RSS 订阅源列表。
-- `pubmed_pmc_search.json`: PubMed/PMC 检索条件，默认 `days_back` 为 7。
-- `workflow_rules.json`: 分级标签、关键词、权重、阈值、期刊白名单和 feedback 语义搜索规则说明。
+- `research_profile.json`: 顶层研究 profile，定义默认领域、分级标签、默认来源、triage 默认值和筛选标准模板。
+- `crossref_search.json`: Crossref 检索配置，供 `crossref` 来源读取。
+- `cnki_import.json`: CNKI 本地导入配置，声明待导入文件路径列表。
+- `pubmed_pmc_search.json`: 数据库检索条件，当前沿用兼容文件名，默认 `days_back` 为 7。
+- `workflow_rules.json`: 文献分级规则覆盖层；未显式填写的 triage 默认值会回退到 `research_profile.json`。
 - `title_translation.config.json`: 标题翻译的非密钥参数。
 - `preference_learning.config.json`: `screening_standards.docx` 中文评价理解的非密钥参数；密钥优先读 `PREFERENCE_LEARNING_API_KEY`，缺省回退到 `TITLE_TRANSLATION_API_KEY`。
 

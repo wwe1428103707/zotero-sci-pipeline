@@ -1,31 +1,56 @@
-import { loadWorkflowRules } from "./literature_config.mjs";
+import { loadResearchProfile, loadWorkflowRules } from "./literature_config.mjs";
 
 import { readScreeningStandardsFileSync } from "./screening_standards_file.mjs";
 
 const WORKFLOW_RULES = loadWorkflowRules().config;
 const TRIAGE_RULES = WORKFLOW_RULES.triage || {};
+const RESEARCH_PROFILE = loadResearchProfile().config;
+const PROFILE_LABELS = RESEARCH_PROFILE.triage_labels || {};
 
 export const TRIAGE_VERSION = TRIAGE_RULES.version || "2026-05-21-v2";
 
 export const LABELS = {
-  A: TRIAGE_RULES.labels?.A || "A课题相关",
-  B: TRIAGE_RULES.labels?.B || "B专题相关",
-  C: TRIAGE_RULES.labels?.C || "C领域相关",
-  D: TRIAGE_RULES.labels?.D || "D无关",
+  A: TRIAGE_RULES.labels?.A || PROFILE_LABELS.A || "A核心相关",
+  B: TRIAGE_RULES.labels?.B || PROFILE_LABELS.B || "B主题相关",
+  C: TRIAGE_RULES.labels?.C || PROFILE_LABELS.C || "C背景相关",
+  D: TRIAGE_RULES.labels?.D || PROFILE_LABELS.D || "D低相关",
 };
 
 export const SOURCE_LABELS = {
   rss: TRIAGE_RULES.source_labels?.rss || "RSS",
   pubmed: TRIAGE_RULES.source_labels?.pubmed || "PubMed",
   pmc: TRIAGE_RULES.source_labels?.pmc || "PMC",
+  crossref: TRIAGE_RULES.source_labels?.crossref || "Crossref",
+  cnki_import: TRIAGE_RULES.source_labels?.cnki_import || "CNKI Import",
+  arxiv: TRIAGE_RULES.source_labels?.arxiv || "arXiv",
+  semantic_scholar: TRIAGE_RULES.source_labels?.semantic_scholar || "Semantic Scholar",
+  dblp: TRIAGE_RULES.source_labels?.dblp || "DBLP",
   other: TRIAGE_RULES.source_labels?.other || "other",
 };
 
-const POLLUTANT_TERMS = TRIAGE_RULES.terms?.pollutant || ["pollution", "pollutant", "microplastic", "pm2.5", "pfas", "exposure", "toxic"];
-const CORE_TOPIC_TERMS = TRIAGE_RULES.terms?.core_topic || ["microglia", "neuroinflamm", "brain", "cognitive", "mitochond", "synap", "neurotox"];
-const MECHANISM_TERMS = TRIAGE_RULES.terms?.mechanism || ["pathway", "mechanism", "axis", "oxidative", "omics", "signaling", "model"];
+const POLLUTANT_TERMS = TRIAGE_RULES.terms?.pollutant || [
+  "fault diagnosis", "condition monitoring", "predictive maintenance", "optimization", "optimal control",
+  "control", "scheduling", "detection", "estimation", "simulation", "modeling",
+];
+const CORE_TOPIC_TERMS = TRIAGE_RULES.terms?.core_topic || [
+  "bearing", "rotating machinery", "gearbox", "sensor fusion", "digital twin",
+  "finite element", "manufacturing", "robot", "energy management", "structural health monitoring",
+];
+const MECHANISM_TERMS = TRIAGE_RULES.terms?.mechanism || [
+  "benchmark", "validation", "experiment", "ablation", "prototype", "field test",
+  "comparative study", "error analysis", "controller", "algorithm", "model",
+];
 const JOURNAL_WHITELIST = new Set(TRIAGE_RULES.journal_whitelist || [
-  "nature", "nature neuroscience", "nature reviews neuroscience", "science", "science advances", "cell", "cell reports", "neuron", "environmental health perspectives", "environmental science & technology", "environment international", "environmental pollution", "journal of neuroinflammation",
+  "ieee transactions on industrial electronics",
+  "ieee transactions on industrial informatics",
+  "mechanical systems and signal processing",
+  "reliability engineering & system safety",
+  "engineering applications of artificial intelligence",
+  "control engineering practice",
+  "applied energy",
+  "journal of manufacturing systems",
+  "composite structures",
+  "automation in construction",
 ]);
 const WEIGHTS = {
   pollutant: Number(TRIAGE_RULES.weights?.pollutant ?? 1.6),
@@ -79,6 +104,8 @@ function sourceLabel(sourcePlatform, sourceChannel) {
   if (normalized === "rss") return SOURCE_LABELS.rss;
   if (normalized === "pubmed") return SOURCE_LABELS.pubmed;
   if (normalized === "pmc") return SOURCE_LABELS.pmc;
+  if (normalized === "crossref") return SOURCE_LABELS.crossref;
+  if (normalized === "cnki_import") return SOURCE_LABELS.cnki_import;
   return SOURCE_LABELS.other;
 }
 
@@ -122,14 +149,10 @@ export function parseScreeningStandards(markdown) {
   for (const rule of sections.hard_excludes) {
     const lower = rule.toLowerCase();
     const keywords = [];
-    if (lower.includes("癌症") || lower.includes("肿瘤") || lower.includes("cancer") || lower.includes("tumo")) keywords.push("cancer", "tumor", "tumour", "carcinoma", "neoplas", "malignan", "癌症", "肿瘤", "癌");
-    if (lower.includes("病毒") || lower.includes("virus") || lower.includes("viral")) keywords.push("virus", "viral", "virome", "病毒");
-    if (lower.includes("植物") || lower.includes("plant") || lower.includes("arabidopsis")) keywords.push("plant", "arabidopsis", "植物", "botanical");
-    if (lower.includes("水生") || lower.includes("鱼类") || lower.includes("两栖") || lower.includes("aquatic") || lower.includes("fish") || lower.includes("amphibian") || lower.includes("zebrafish")) keywords.push("aquatic", "fish", "amphibian", "zebrafish", "水生", "鱼类", "两栖", "斑马鱼");
-    if (lower.includes("虫类") || lower.includes("昆虫") || lower.includes("线虫") || lower.includes("节肢") || lower.includes("insect") || lower.includes("nematode") || lower.includes("drosophila") || lower.includes("arthropod")) keywords.push("insect", "nematode", "drosophila", "arthropod", "昆虫", "线虫", "果蝇", "节肢");
-    if (lower.includes("环境科学") || lower.includes("生态毒理") || lower.includes("环境工程") || lower.includes("污染物降解") || lower.includes("环境化学") || lower.includes("environmental") || lower.includes("ecotoxicolog")) keywords.push("environmental", "ecotoxicology", "环境科学", "生态毒理", "环境工程", "污染物降解");
-    if (lower.includes("工程") || lower.includes("材料科学") || lower.includes("物理") || lower.includes("电子") || lower.includes("机械") || lower.includes("computational engineer") || lower.includes("engineering")) keywords.push("engineering", "computational", "material science", "physics", "工程", "材料科学");
-    if (lower.includes("方法学") || lower.includes("算法") || lower.includes("工具开发") || lower.includes("ai ") || lower.includes("artificial intelligence") || lower.includes("machine learning") || lower.includes("deep learning")) keywords.push("methodological", "algorithm", "tool development", "artificial intelligence", "machine learning", "deep learning", "方法学", "算法", "工具开发");
+    if (lower.includes("无关") || lower.includes("范围外") || lower.includes("unrelated")) keywords.push("unrelated", "out of scope", "无关", "范围外");
+    if (lower.includes("社科") || lower.includes("教育") || lower.includes("市场") || lower.includes("金融") || lower.includes("policy") || lower.includes("education") || lower.includes("marketing") || lower.includes("finance")) keywords.push("policy", "education", "marketing", "finance", "社科", "教育", "市场", "金融");
+    if (lower.includes("没有方法") || lower.includes("没有数据") || lower.includes("没有实验") || lower.includes("no method") || lower.includes("no data") || lower.includes("no experiment")) keywords.push("no method", "no data", "no experiment", "没有方法", "没有数据", "没有实验");
+    if (lower.includes("宣传") || lower.includes("新闻稿") || lower.includes("产品介绍") || lower.includes("announcement") || lower.includes("press release")) keywords.push("press release", "announcement", "产品介绍", "宣传", "新闻稿");
     if (keywords.length === 0) keywords.push(lower.slice(0, 60));
     hardExcludes.push({ rule, keywords, section: "严格排除" });
   }
@@ -138,11 +161,11 @@ export function parseScreeningStandards(markdown) {
   for (const rule of sections.negative_preferences) {
     const lower = rule.toLowerCase();
     const keywords = [];
-    if (lower.includes("人群队列") || lower.includes("流行病") || lower.includes("cohort") || lower.includes("epidemiolog")) keywords.push("cohort", "epidemiology", "人群队列", "流行病学");
-    if (lower.includes("肾脏") || lower.includes("renal") || lower.includes("kidney")) keywords.push("renal", "kidney", "肾脏", "肾病");
-    if (lower.includes("果蝇") || lower.includes("线虫") || lower.includes("酵母") || lower.includes("drosophila") || lower.includes("yeast")) keywords.push("drosophila", "yeast", "nematode", "果蝇", "线虫", "酵母");
-    if (lower.includes("纯描述") || lower.includes("descriptive")) keywords.push("descriptive", "描述性");
-    if (lower.includes("非医学") || lower.includes("无关疾病")) keywords.push("non-medical", "非医学", "无关疾病");
+    if (lower.includes("综述") || lower.includes("survey") || lower.includes("review")) keywords.push("survey", "review", "综述");
+    if (lower.includes("缺乏验证") || lower.includes("没有实验") || lower.includes("validation")) keywords.push("validation", "experiment", "缺乏验证", "没有实验");
+    if (lower.includes("仿真") || lower.includes("simulation")) keywords.push("simulation", "仿真");
+    if (lower.includes("数据规模") || lower.includes("样本") || lower.includes("sample")) keywords.push("sample", "dataset", "样本", "数据规模");
+    if (lower.includes("范围外") || lower.includes("无关")) keywords.push("unrelated", "out of scope", "范围外", "无关");
     if (keywords.length === 0) keywords.push(lower.slice(0, 50));
     negativePrefs.push({ rule, keywords, section: "相对降权" });
   }
@@ -151,12 +174,12 @@ export function parseScreeningStandards(markdown) {
   for (const rule of sections.positive_preferences) {
     const lower = rule.toLowerCase();
     const keywords = [];
-    if (lower.includes("动物实验") || lower.includes("哺乳动物") || lower.includes("小鼠") || lower.includes("大鼠") || lower.includes("mouse") || lower.includes("rat")) keywords.push("animal", "mouse", "mice", "rat", "mammal", "动物实验", "小鼠", "大鼠");
-    if (lower.includes("神经") || lower.includes("小胶质") || lower.includes("突触") || lower.includes("neuro") || lower.includes("microglia") || lower.includes("synap")) keywords.push("neuro", "microglia", "synapse", "brain", "神经", "小胶质", "突触");
-    if (lower.includes("组学") || lower.includes("转录组") || lower.includes("蛋白组") || lower.includes("代谢组") || lower.includes("omics") || lower.includes("transcriptom") || lower.includes("proteom") || lower.includes("metabolom")) keywords.push("omics", "transcriptomics", "proteomics", "metabolomics", "组学");
-    if (lower.includes("补体") || lower.includes("complement")) keywords.push("complement", "补体");
-    if (lower.includes("肠道") || lower.includes("菌群") || lower.includes("微生物") || lower.includes("microbio") || lower.includes("gut")) keywords.push("microbiome", "gut", "microbiota", "肠道", "菌群", "微生物");
-    if (lower.includes("斑马鱼") || lower.includes("zebrafish")) keywords.push("zebrafish", "斑马鱼");
+    if (lower.includes("故障诊断") || lower.includes("fault diagnosis")) keywords.push("fault diagnosis", "故障诊断");
+    if (lower.includes("状态监测") || lower.includes("condition monitoring")) keywords.push("condition monitoring", "状态监测");
+    if (lower.includes("优化") || lower.includes("控制") || lower.includes("optimization") || lower.includes("control")) keywords.push("optimization", "control", "优化", "控制");
+    if (lower.includes("建模") || lower.includes("仿真") || lower.includes("simulation") || lower.includes("finite element")) keywords.push("simulation", "finite element", "建模", "仿真");
+    if (lower.includes("传感") || lower.includes("融合") || lower.includes("sensor fusion")) keywords.push("sensor fusion", "传感", "融合");
+    if (lower.includes("实验验证") || lower.includes("benchmark") || lower.includes("prototype") || lower.includes("validation")) keywords.push("validation", "benchmark", "prototype", "实验验证");
     if (keywords.length === 0) keywords.push(lower.slice(0, 50));
     positivePrefs.push({ rule, keywords, section: "优先关注" });
   }
@@ -245,16 +268,16 @@ export function classifyItem(item = {}, prefs = {}, standards = null) {
     classificationReason = `命中严格排除规则: ${matchedStandardRules.map((r) => r.rule.slice(0, 80)).join("; ")}`;
   } else if (pollutantHits.length >= THRESHOLDS.A_min_pollutant_hits && coreHits.length >= THRESHOLDS.A_min_core_hits && score >= THRESHOLDS.A_score) {
     grade = "A";
-    classificationReason = GRADE_REASONS.A || "直接命中当前课题关键词组合。";
+    classificationReason = GRADE_REASONS.A || "直接命中当前核心工程问题与关键方法信号。";
   } else if ((pollutantHits.length >= 1 || coreHits.length >= 1) && (mechanismHits.length >= 1 || qualityHit) && score >= THRESHOLDS.B_score) {
     grade = "B";
-    classificationReason = GRADE_REASONS.B || "与当前专题或邻近专题明显相关。";
+    classificationReason = GRADE_REASONS.B || "与当前主题明显相关，可作为方法或应用参考。";
   } else if (score >= THRESHOLDS.C_score && text.length > 20) {
     grade = "C";
-    classificationReason = GRADE_REASONS.C || "与所在研究领域相关，低优先级保留。";
+    classificationReason = GRADE_REASONS.C || "与所在研究背景相关，低优先级保留。";
   } else {
     grade = "D";
-    classificationReason = GRADE_REASONS.D || "与当前课题、专题和领域相关性不足。";
+    classificationReason = GRADE_REASONS.D || "与当前研究问题和工程场景相关性不足。";
   }
 
   const uncertain = (grade === "B" && score < THRESHOLDS.B_uncertain_below) || (grade === "C" && score < THRESHOLDS.C_uncertain_below) || (grade === "D" && score > 0 && !hardExcluded);
@@ -270,10 +293,10 @@ export function classifyItem(item = {}, prefs = {}, standards = null) {
   ];
 
   const reasons = {
-    A: GRADE_REASONS.A || "直接命中当前课题关键词组合，与核心课题问题高度贴合。",
-    B: GRADE_REASONS.B || "与当前专题或邻近专题明显相关，可作为专题背景或方法参考。",
-    C: GRADE_REASONS.C || "与所在研究领域相关，但距离当前课题和专题较远，低优先级保留。",
-    D: GRADE_REASONS.D || "与当前课题、专题和领域相关性不足，仅保留审计记录。",
+    A: GRADE_REASONS.A || "直接命中当前核心工程问题、关键对象与方法验证信号。",
+    B: GRADE_REASONS.B || "与当前主题或邻近应用明显相关，可作为方法、数据或场景参考。",
+    C: GRADE_REASONS.C || "与所在研究背景相关，但距离当前核心问题较远，低优先级保留。",
+    D: GRADE_REASONS.D || "与当前研究目标相关性不足，仅保留审计记录。",
   };
 
   return {

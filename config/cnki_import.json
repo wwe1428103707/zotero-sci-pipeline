@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "description": "知网手动导入配置",
+  "enabled": true,
+  "format_hint": "auto",
+  "paths": [
+    "imports/cnki_import.csv"
+  ]
+}
