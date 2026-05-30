@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "description": "PDF 自动下载配置 — 人工智能/计算机视觉/自然语言处理方向",
+  "sci_hub_base_url": "https://sci-hub.st",
+  "sci_hub_timeout_ms": 30000,
+  "arxiv_mirror": "https://arxiv.org",
+  "arxiv_timeout_ms": 15000,
+  "max_concurrent_downloads": 3,
+  "download_dir": "downloads/pdf_temp",
+  "grade_filter": "A",
+  "retry": {
+    "max_retries": 2,
+    "retry_delay_ms": 3000
+  },
+  "zotero_attachment_field": "pdf_attached",
+  "skip_if_pdf_attached": true
+}

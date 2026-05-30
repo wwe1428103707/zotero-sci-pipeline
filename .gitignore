@@ -16,6 +16,12 @@ node_modules/
 research_os/
 .screening_standards.last_synced.md
 
+# PDF download temp files
+downloads/
+
+# Proxy config (contains passwords)
+config/proxy.config.json
+
 # Binary files
 screening_standards.docx
 *.xpi
