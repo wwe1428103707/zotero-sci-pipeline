@@ -10,6 +10,7 @@ import {
   detectSpreadsheetsSkillAvailability,
   exportAllResearchOsXlsxWithSpreadsheetsSkill,
 } from "./lib/spreadsheet_adapter.mjs";
+import { generateDailyXlsx } from "./generate_daily_xlsx.mjs";
 import { loadTranslationCache } from "./lib/title_translation_support.mjs";
 import { buildRuntimeConfig } from "./lib/runtime_config.mjs";
 import { loadResearchProfile } from "./lib/literature_config.mjs";
@@ -163,20 +164,47 @@ export async function finalizeResearchOsExports() {
       result: res,
     });
   } else {
-    exportAudit = buildStage4ExportAudit({
-      mode: "manual_required",
-      reviewRoot: REVIEW_ROOT,
-      requestedOutputPath,
-      exportInputFiles,
-      writebackSummary,
-      backfillReport,
-      runReport,
-      fallbackChain,
-      generatedAt: exportGeneratedAt,
-      paperAssetOutputs,
-      skillAvailability,
-    });
-    throw new Error(`SPREADSHEETS_SKILL_UNAVAILABLE: ${skillAvailability.reason}`);
+    try {
+      const nodeResult = await generateDailyXlsx({
+        dateStr,
+        dayStr: day,
+        weekLabel: weekLabel(TODAY),
+        weekIso: week,
+        researchRoot: RESEARCH_ROOT,
+        reviewRoot: REVIEW_ROOT,
+        pipelineDir,
+      });
+      exportAudit = buildStage4ExportAudit({
+        mode: "node_fallback",
+        reviewRoot: REVIEW_ROOT,
+        requestedOutputPath,
+        exportInputFiles,
+        writebackSummary,
+        backfillReport,
+        runReport,
+        fallbackChain,
+        generatedAt: exportGeneratedAt,
+        paperAssetOutputs,
+        skillAvailability,
+        result: nodeResult,
+      });
+    } catch (nodeError) {
+      exportAudit = buildStage4ExportAudit({
+        mode: "manual_required",
+        reviewRoot: REVIEW_ROOT,
+        requestedOutputPath,
+        exportInputFiles,
+        writebackSummary,
+        backfillReport,
+        runReport,
+        fallbackChain,
+        generatedAt: exportGeneratedAt,
+        paperAssetOutputs,
+        skillAvailability,
+        nodeError: String(nodeError?.message || nodeError),
+      });
+      throw new Error(`XLSX_EXPORT_FAILED: spreadsheets_skill_unavailable, node_fallback_failed: ${nodeError?.message || nodeError}`);
+    }
   }
 
   runReport.steps = runReport.steps || {};

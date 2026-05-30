@@ -7,8 +7,11 @@ import { finalizeResearchOsExports, markFinalizeExportsFailure } from "./finaliz
 import { markWritebackFailure, runMcpBulkWriteback } from "./mcp_bulk_writeback.mjs";
 import { markBackfillFailure, runMcpTranslationBackfill } from "./mcp_translation_backfill.mjs";
 import { runResearchOsPipeline } from "./run_research_os_pipeline.mjs";
+import { sendPipelineNotification } from "./lib/pipeline_notifier.mjs";
 import { buildRuntimeConfig } from "./lib/runtime_config.mjs";
 import { evaluateRunInterval } from "./lib/schedule_support.mjs";
+import { validateEnvironment, printValidationResult } from "./lib/env_validator.mjs";
+import { stageHeader, stageDone, stageWarn, stageFail } from "./lib/progress_bar.mjs";
 
 const AUTOMATION_NAME = "zotero-sci-pipeline";
 const MANUAL_BYPASS_REASON = "manual_bypass_interval_gate";
@@ -265,8 +268,10 @@ export async function runZoteroLiteratureFilter({
     return report;
   }
 
+  stageHeader("Stage 1: 入库与分级");
   stages.push(await executeStage(stageDefs.stage1, runSameProcessStage, clock));
   if (stages.at(-1).exitCode !== 0) {
+    stageFail("Stage 1", `exit code ${stages.at(-1).exitCode}`);
     stages.push(skippedStage(stageDefs.mcpReady.name, stageDefs.mcpReady.scriptPath, "stage1_failed", clock));
     stages.push(skippedStage(stageDefs.stage2.name, stageDefs.stage2.scriptPath, "stage1_failed", clock));
     stages.push(skippedStage(stageDefs.stage3.name, stageDefs.stage3.scriptPath, "stage1_failed", clock));
@@ -275,9 +280,12 @@ export async function runZoteroLiteratureFilter({
     await writeReport(report);
     return report;
   }
+  stageDone("Stage 1", "入库与分级完成");
 
+  stageHeader("MCP 就绪检查");
   stages.push(await executeStage(stageDefs.mcpReady, runSameProcessStage, clock));
   if (stages.at(-1).exitCode !== 0) {
+    stageFail("MCP", `exit code ${stages.at(-1).exitCode}`);
     stages.push(skippedStage(stageDefs.stage2.name, stageDefs.stage2.scriptPath, "mcp_ready_failed", clock));
     stages.push(skippedStage(stageDefs.stage3.name, stageDefs.stage3.scriptPath, "mcp_ready_failed", clock));
     stages.push(skippedStage(stageDefs.stage4.name, stageDefs.stage4.scriptPath, "mcp_ready_failed", clock));
@@ -285,19 +293,24 @@ export async function runZoteroLiteratureFilter({
     await writeReport(report);
     return report;
   }
+  stageDone("MCP", "就绪");
 
+  stageHeader("Stage 2: Zotero 写回");
   const stage2 = await executeStage(stageDefs.stage2, runSameProcessStage, clock);
   stages.push(stage2);
   artifacts.writeback_summary = await inspectArtifact("writeback_summary", "mcp_writeback_summary.json", stage2.startedAt, config, statArtifact, readJson);
   if (stage2.exitCode !== 0 || !artifacts.writeback_summary.currentRun) {
-    const reason = stage2.exitCode !== 0 ? "stage2_failed" : "writeback_summary_stale_or_missing";
+    const reason = stage2.exitCode !== 0 ? `exit code ${stage2.exitCode}` : "writeback_summary_stale_or_missing";
+    stageFail("Stage 2", reason);
     stages.push(skippedStage(stageDefs.stage3.name, stageDefs.stage3.scriptPath, reason, clock));
     stages.push(skippedStage(stageDefs.stage4.name, stageDefs.stage4.scriptPath, reason, clock));
     const explicitForceRun = runMode.explicitForceRun; const bypassIntervalGate = Boolean(manualTrigger || explicitForceRun); const bypassReason = explicitForceRun ? EXPLICIT_FORCE_BYPASS_REASON : manualTrigger ? MANUAL_BYPASS_REASON : null; const report = { automationName: AUTOMATION_NAME, runId, startedAt, finishedAt: iso(clock()), status: "failed", triggerMode, runMode, forceRun: manualTrigger || explicitForceRun, explicitForceRun, bypassIntervalGate, bypassReason, pipelineDir: config.pipelineDir, stages, artifacts };
     await writeReport(report);
     return report;
   }
+  stageDone("Stage 2", "Zotero 写回完成");
 
+  stageHeader("Stage 3: 标题翻译");
   const stage3 = await executeStage(stageDefs.stage3, runSameProcessStage, clock);
   artifacts.translation_backfill = await inspectArtifact("translation_backfill", "abc_translation_backfill.json", stage3.startedAt, config, statArtifact, readJson);
   const stage3FailureCount = Number(artifacts.translation_backfill.data?.failure_count || 0);
@@ -307,15 +320,23 @@ export async function runZoteroLiteratureFilter({
   stages.push(stage3);
 
   if ((stage3.exitCode !== 0 && stage3.exitCode !== 2) || !artifacts.translation_backfill.currentRun) {
-    const reason = stage3.exitCode !== 0 && stage3.exitCode !== 2 ? "stage3_failed" : "translation_backfill_stale_or_missing";
+    const reason = stage3.exitCode !== 0 && stage3.exitCode !== 2 ? `exit code ${stage3.exitCode}` : "translation_backfill_stale_or_missing";
+    stageFail("Stage 3", reason);
     stages.push(skippedStage(stageDefs.stage4.name, stageDefs.stage4.scriptPath, reason, clock));
     const explicitForceRun = runMode.explicitForceRun; const bypassIntervalGate = Boolean(manualTrigger || explicitForceRun); const bypassReason = explicitForceRun ? EXPLICIT_FORCE_BYPASS_REASON : manualTrigger ? MANUAL_BYPASS_REASON : null; const report = { automationName: AUTOMATION_NAME, runId, startedAt, finishedAt: iso(clock()), status: "failed", triggerMode, runMode, forceRun: manualTrigger || explicitForceRun, explicitForceRun, bypassIntervalGate, bypassReason, pipelineDir: config.pipelineDir, stages, artifacts };
     await writeReport(report);
     return report;
   }
+  stageDone("Stage 3", stage3FailureCount > 0 ? `翻译完成 (${stage3FailureCount} 篇失败)` : "翻译完成");
 
+  stageHeader("Stage 4: Excel 导出");
   stages.push(await executeStage(stageDefs.stage4, runSameProcessStage, clock));
   const status = stages.at(-1).exitCode === 0 ? "completed" : "failed";
+  if (status === "completed") {
+    stageDone("Stage 4", "Excel 导出完成");
+  } else {
+    stageFail("Stage 4", `exit code ${stages.at(-1).exitCode}`);
+  }
   const explicitForceRun = runMode.explicitForceRun; const bypassIntervalGate = Boolean(manualTrigger || explicitForceRun); const bypassReason = explicitForceRun ? EXPLICIT_FORCE_BYPASS_REASON : manualTrigger ? MANUAL_BYPASS_REASON : null; const report = { automationName: AUTOMATION_NAME, runId, startedAt, finishedAt: iso(clock()), status, triggerMode, runMode, forceRun: manualTrigger || explicitForceRun, explicitForceRun, bypassIntervalGate, bypassReason, pipelineDir: config.pipelineDir, stages, artifacts };
   await writeReport(report);
   return report;
@@ -328,8 +349,45 @@ async function main() {
     process.env.RESEARCH_OS_FORCE_RUN = "true";
     process.env.FORCE_RESEARCH_OS_RUN = "true";
   }
+
+  const envResult = validateEnvironment();
+  if (envResult.fatal) {
+    const msg = printValidationResult(envResult);
+    console.error("[env_validator] 环境检查失败，拒绝运行");
+    console.error(msg);
+    process.exit(1);
+  }
+  if (envResult.warnings.length > 0) {
+    console.warn("[env_validator] 环境警告:");
+    console.warn(printValidationResult(envResult));
+  } else {
+    console.log("[env_validator] " + printValidationResult(envResult));
+  }
   const report = await runZoteroLiteratureFilter({ triggerMode: runMode.triggerMode, runMode });
   console.log(JSON.stringify(report, null, 2));
+
+  const stage1Report = report.artifacts?.stage1_report?.data || {};
+  const counts = stage1Report.counts || {};
+  const notificationPayload = {
+    status: report.status,
+    date: stage1Report.date || report.startedAt?.slice(0, 10) || "",
+    counts: {
+      merged: counts.merged || 0,
+      triaged: counts.triaged || 0,
+      rss_raw: counts.rss_raw || 0,
+      arxiv_raw: counts.arxiv_raw || 0,
+      crossref_raw: counts.crossref_raw || 0,
+      grade_counts: counts.grade_counts || {},
+    },
+    failures: report.stages?.filter((s) => s.exitCode && s.exitCode !== 0).map((s) => ({ stage: s.name, reason: s.stderr || s.status })),
+  };
+  const notificationResult = await sendPipelineNotification(notificationPayload);
+  if (notificationResult.ok) {
+    console.log(JSON.stringify({ notification: { ok: true, channel: notificationResult.channel } }));
+  } else if (!notificationResult.skipped) {
+    console.warn(JSON.stringify({ notification: { ok: false, errors: notificationResult.errors } }));
+  }
+
   process.exit(["completed", "skipped"].includes(report.status) ? 0 : 1);
 }
 

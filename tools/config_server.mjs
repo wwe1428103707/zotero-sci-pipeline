@@ -220,6 +220,90 @@ async function handleApi(req, res, parts) {
     }
   }
 
+  if (parts[0] === "dashboard" && method === "GET") {
+    const pipelineRoot = path.join(RESEARCH_OS, "pipeline");
+    let dirs = [];
+    try {
+      dirs = fs.readdirSync(pipelineRoot).filter((d) => /^\d+\.\d+\.\d+$/.test(d)).sort().reverse();
+    } catch { /* empty */ }
+
+    const runs = [];
+    let trendAccum = { A: [], B: [], C: [], D: [], labels: [] };
+    let allKeywords = {};
+    let allSourceBreakdown = {};
+    let totalRunCount = 0;
+
+    for (const dir of dirs.slice(0, 30)) {
+      const reportPath = path.join(pipelineRoot, dir, "run_report.json");
+      try {
+        const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+        const c = report.counts || {};
+        const gc = c.grade_counts || {};
+        runs.push({
+          date: report.date || dir,
+          dir,
+          merged: c.merged || 0,
+          triaged: c.triaged || 0,
+          rss_raw: c.rss_raw || 0,
+          crossref_raw: c.crossref_raw || 0,
+          arxiv_raw: c.arxiv_raw || 0,
+          grade_counts: gc,
+          total: (gc.A || 0) + (gc.B || 0) + (gc.C || 0) + (gc.D || 0),
+        });
+        trendAccum.labels.push(report.date || dir);
+        trendAccum.A.push(gc.A || 0);
+        trendAccum.B.push(gc.B || 0);
+        trendAccum.C.push(gc.C || 0);
+        trendAccum.D.push(gc.D || 0);
+        totalRunCount++;
+      } catch { /* skip */ }
+
+      const triagedPath = path.join(pipelineRoot, dir, "triaged_items.json");
+      try {
+        const items = JSON.parse(fs.readFileSync(triagedPath, "utf8"));
+        if (Array.isArray(items)) {
+          for (const it of items) {
+            const src = it.source_channel || it.source_platform || "other";
+            allSourceBreakdown[src] = (allSourceBreakdown[src] || 0) + 1;
+            if ((it.grade || "").charAt(0) === "A" || (it.grade || "").charAt(0) === "B") {
+              const text = `${it.title || ""} ${it["中文标题"] || it["标题翻译"] || ""}`;
+              const words = text.toLowerCase().match(/[a-z]{4,}/g) || [];
+              const zhWords = text.match(/[\u4e00-\u9fff]{2,6}/g) || [];
+              for (const w of [...words, ...zhWords]) {
+                const stopWords = new Set(["this","that","with","from","using","based","method","approach","model","data","learning","paper","results","study","propose","novel","experimental","analysis","performance","system","algorithm","network","application","frame","work","show","also","can","well","two","one","first","proposed","different","effective","efficient","improve","existing","developed","present","introduce","实验","方法","模型","研究","算法","系统","网络","数据","分析","基于","提出","技术","框架","性能","结果","应用","有效","改进","新型","问题","方案","优化","设计","实现","融合","特征","分类","识别","预测","检测","评估","比较"]);
+                if (!stopWords.has(w)) allKeywords[w] = (allKeywords[w] || 0) + 1;
+              }
+            }
+          }
+        }
+      } catch { /* skip */ }
+    }
+
+    const topKeywords = Object.entries(allKeywords)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 50)
+      .map(([word, count]) => ({ 关键词: word, 出现次数: count }));
+
+    const sourceBreakdown = Object.entries(allSourceBreakdown)
+      .sort((a, b) => b[1] - a[1])
+      .map(([src, count]) => ({ 来源: src, 数量: count }));
+
+    return sendJson(res, {
+      ok: true,
+      total_runs: totalRunCount,
+      recent_runs: runs.slice(0, 10),
+      trends: {
+        labels: trendAccum.labels,
+        A: trendAccum.A,
+        B: trendAccum.B,
+        C: trendAccum.C,
+        D: trendAccum.D,
+      },
+      keywords: topKeywords,
+      source_breakdown: sourceBreakdown,
+    });
+  }
+
   sendError(res, 404, "未知 API");
 }
 

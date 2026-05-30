@@ -6,6 +6,10 @@
 <title>zotero-sci-pipeline 配置面板</title>
 <style>
 :root {
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+html[data-theme="dark-github"] {
   --bg: #0d1117;
   --surface: #161b22;
   --border: #30363d;
@@ -15,8 +19,80 @@
   --green: #3fb950;
   --red: #f85149;
   --orange: #d29922;
-  --radius: 8px;
-  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --toast-bg-s: #1a3a2a;
+  --toast-bg-e: #3a1a1a;
+  --toast-bg-i: #1a2a3a;
+  --chart-bar: #58a6ff;
+  --nav-hover: rgba(88,166,255,0.05);
+  --nav-active: rgba(88,166,255,0.08);
+}
+html[data-theme="deep-blue"] {
+  --bg: #0a1628;
+  --surface: #0f1d3d;
+  --border: #1e3a6b;
+  --text: #d9e6f7;
+  --text-dim: #6b8db5;
+  --accent: #4d9fff;
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #fbbf24;
+  --toast-bg-s: #0a2a1a;
+  --toast-bg-e: #2a0a0a;
+  --toast-bg-i: #0a1a2a;
+  --chart-bar: #4d9fff;
+  --nav-hover: rgba(77,159,255,0.05);
+  --nav-active: rgba(77,159,255,0.08);
+}
+html[data-theme="aurora-green"] {
+  --bg: #0d1f14;
+  --surface: #142b1e;
+  --border: #1f4a30;
+  --text: #d4edda;
+  --text-dim: #6ba77d;
+  --accent: #34d399;
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #facc15;
+  --toast-bg-s: #0a2a1a;
+  --toast-bg-e: #2a0a0a;
+  --toast-bg-i: #0a1a2a;
+  --chart-bar: #34d399;
+  --nav-hover: rgba(52,211,153,0.05);
+  --nav-active: rgba(52,211,153,0.08);
+}
+html[data-theme="warm-orange"] {
+  --bg: #1c130d;
+  --surface: #2a1c14;
+  --border: #4a3020;
+  --text: #f0e3d6;
+  --text-dim: #b5947a;
+  --accent: #f59e0b;
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #fbbf24;
+  --toast-bg-s: #0a2a1a;
+  --toast-bg-e: #2a0a0a;
+  --toast-bg-i: #1a2a0a;
+  --chart-bar: #f59e0b;
+  --nav-hover: rgba(245,158,11,0.05);
+  --nav-active: rgba(245,158,11,0.08);
+}
+html[data-theme="moonlight"] {
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --border: #d0d7de;
+  --text: #1f2328;
+  --text-dim: #656d76;
+  --accent: #0969da;
+  --green: #1a7f37;
+  --red: #cf222e;
+  --orange: #9a6700;
+  --toast-bg-s: #dafbe1;
+  --toast-bg-e: #ffebe9;
+  --toast-bg-i: #ddf4ff;
+  --chart-bar: #0969da;
+  --nav-hover: rgba(9,105,218,0.04);
+  --nav-active: rgba(9,105,218,0.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -27,11 +103,11 @@ header .status { margin-left: auto; font-size: 13px; color: var(--text-dim); dis
 header .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 header .dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
 header .dot.offline { background: var(--red); }
-.container { display: flex; min-height: calc(100vh - 56px); }
-nav { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 12px 0; flex-shrink: 0; overflow-y: auto; }
+.container { display: flex; height: calc(100vh - 56px); }
+nav { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 12px 0; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; }
 nav a { display: flex; align-items: center; gap: 8px; padding: 10px 20px; color: var(--text-dim); text-decoration: none; font-size: 14px; border-left: 3px solid transparent; transition: all .15s; cursor: pointer; }
-nav a:hover { color: var(--text); background: rgba(88,166,255,0.05); }
-nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(88,166,255,0.08); }
+nav a:hover { color: var(--text); background: var(--nav-hover); }
+nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--nav-active); }
 nav a .icon { font-size: 16px; width: 20px; text-align: center; }
 main { flex: 1; padding: 24px 32px; overflow-y: auto; }
 .page { display: none; }
@@ -62,9 +138,9 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
 .btn-outline:hover { border-color: var(--text-dim); }
 .btn-sm { padding: 4px 12px; font-size: 12px; }
 .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: var(--radius); font-size: 14px; z-index: 999; max-width: 400px; animation: slideIn .3s; }
-.toast.success { background: #1a3a2a; border: 1px solid var(--green); color: var(--green); }
-.toast.error { background: #3a1a1a; border: 1px solid var(--red); color: var(--red); }
-.toast.info { background: #1a2a3a; border: 1px solid var(--accent); color: var(--accent); }
+.toast.success { background: var(--toast-bg-s); border: 1px solid var(--green); color: var(--green); }
+.toast.error { background: var(--toast-bg-e); border: 1px solid var(--red); color: var(--red); }
+.toast.info { background: var(--toast-bg-i); border: 1px solid var(--accent); color: var(--accent); }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .mt-8 { margin-top: 8px; }
@@ -73,9 +149,9 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
 .flex-wrap { flex-wrap: wrap; }
 .gap-4 { gap: 4px; }
 .json-editor { width: 100%; min-height: 400px; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 14px; line-height: 1.7; tab-size: 2; padding: 16px; }
-.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: rgba(88,166,255,0.15); color: var(--accent); }
-.tag.green { background: rgba(63,185,80,0.15); color: var(--green); }
-.tag.orange { background: rgba(210,153,34,0.15); color: var(--orange); }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.tag.green { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
+.tag.orange { background: color-mix(in srgb, var(--orange) 15%, transparent); color: var(--orange); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -89,7 +165,36 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
 .stat-card .label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
 .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #333; border-radius: 20px; transition: .3s; }
+/* 侧边栏交互动画角色 — 引用自 animatedlogin 源码 */
+#nav-characters { position: relative; width: 220px; height: 165px; margin-top: auto; flex-shrink: 0; overflow: hidden; }
+#nav-characters .characters-scene { position: absolute; bottom: 0; left: 0; width: 480px; height: 360px; transform-origin: bottom left; transform: scale(0.4583); }
+#nav-characters .character { position: absolute; bottom: 0; transition: all 0.7s ease-in-out; transform-origin: bottom center; }
+#nav-characters .char-purple { left: 60px; width: 170px; height: 370px; background: #6c3ff5; border-radius: 10px 10px 0 0; z-index: 1; }
+#nav-characters .char-black { left: 220px; width: 115px; height: 290px; background: #2d2d2d; border-radius: 8px 8px 0 0; z-index: 2; }
+#nav-characters .char-orange { left: 0; width: 230px; height: 190px; background: #ff9b6b; border-radius: 115px 115px 0 0; z-index: 3; }
+#nav-characters .char-yellow { left: 290px; width: 135px; height: 215px; background: #e8d754; border-radius: 68px 68px 0 0; z-index: 4; }
+#nav-characters .eyes { position: absolute; display: flex; transition: all 0.7s ease-in-out; }
+#nav-characters .eyeball { border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; transition: height 0.15s ease; overflow: hidden; }
+#nav-characters .pupil { border-radius: 50%; background: #2d2d2d; transition: transform 0.1s ease-out; }
+#nav-characters .bare-pupil { width: 12px; height: 12px; border-radius: 50%; background: #2d2d2d; transition: transform 0.7s ease-in-out; }
+#nav-characters .yellow-mouth { position: absolute; width: 50px; height: 4px; background: #2d2d2d; border-radius: 2px; transition: all 0.7s ease-in-out; }
+#nav-characters .orange-mouth { position: absolute; width: 28px; height: 14px; border: 3px solid #2d2d2d; border-top: none; border-radius: 0 0 14px 14px; opacity: 0; transition: all 0.7s ease-in-out; }
+#nav-characters .orange-mouth.visible { opacity: 1; }
+#nav-characters .eyes.shake-head,
+#nav-characters .yellow-mouth.shake-head,
+#nav-characters .orange-mouth.shake-head { animation: shakeHead 0.8s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+@keyframes shakeHead {
+  0%,100% { translate: 0 0; }
+  10% { translate: -9px 0; }
+  20% { translate: 7px 0; }
+  30% { translate: -6px 0; }
+  40% { translate: 5px 0; }
+  50% { translate: -4px 0; }
+  60% { translate: 3px 0; }
+  70% { translate: -2px 0; }
+  80% { translate: 1px 0; }
+  90% { translate: -0.5px 0; }
+}
 .toggle-slider::before { content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
 .toggle-switch input:checked + .toggle-slider { background: var(--green); }
 .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
@@ -113,13 +218,28 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
   .form-row, .form-row-3, .form-row-4, .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
 #modalOverlay input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; }
-#modalOverlay input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88,166,255,0.15); }
+#modalOverlay input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); }
+.theme-switcher { display: flex; align-items: center; gap: 6px; margin-right: 12px; }
+.theme-label { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+#themeSelect { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; outline: none; font-family: inherit; }
+#themeSelect:focus { border-color: var(--accent); }
+#themeSelect option { background: var(--surface); color: var(--text); }
 </style>
 </head>
 <body>
 
 <header>
   <h1><span>zotero</span>-sci-pipeline 配置面板</h1>
+  <div class="theme-switcher">
+    <label class="theme-label" for="themeSelect">主题</label>
+    <select id="themeSelect" onchange="switchTheme(this.value)">
+      <option value="dark-github">暗黑 GitHub</option>
+      <option value="deep-blue">深邃蓝</option>
+      <option value="aurora-green">极光绿</option>
+      <option value="warm-orange">暖阳橙</option>
+      <option value="moonlight">月光白</option>
+    </select>
+  </div>
   <div class="status">
     <span class="dot online" id="statusDot"></span>
     <span id="statusText">连接中...</span>
@@ -140,17 +260,73 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
     <a data-page="preference_learning"><span class="icon">&#9881;</span> 偏好学习</a>
     <a data-page="env"><span class="icon">&#9881;</span> 环境变量</a>
     <a data-page="pipeline"><span class="icon">&#9654;</span> 运行管线</a>
+    <div id="nav-characters">
+      <div class="characters-scene" id="characters-scene">
+        <div class="character char-purple" id="char-purple">
+          <div class="eyes" id="purple-eyes" style="left: 45px; top: 40px; gap: 28px">
+            <div class="eyeball" id="purple-eye-l" style="width: 18px; height: 18px">
+              <div class="pupil" id="purple-pupil-l" style="width: 7px; height: 7px"></div>
+            </div>
+            <div class="eyeball" id="purple-eye-r" style="width: 18px; height: 18px">
+              <div class="pupil" id="purple-pupil-r" style="width: 7px; height: 7px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="character char-black" id="char-black">
+          <div class="eyes" id="black-eyes" style="left: 26px; top: 32px; gap: 20px">
+            <div class="eyeball" id="black-eye-l" style="width: 16px; height: 16px">
+              <div class="pupil" id="black-pupil-l" style="width: 6px; height: 6px"></div>
+            </div>
+            <div class="eyeball" id="black-eye-r" style="width: 16px; height: 16px">
+              <div class="pupil" id="black-pupil-r" style="width: 6px; height: 6px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="character char-orange" id="char-orange">
+          <div class="eyes" id="orange-eyes" style="left: 82px; top: 90px; gap: 28px">
+            <div class="bare-pupil" id="orange-pupil-l"></div>
+            <div class="bare-pupil" id="orange-pupil-r"></div>
+          </div>
+          <div class="orange-mouth" id="orange-mouth" style="left: 90px; top: 120px"></div>
+        </div>
+        <div class="character char-yellow" id="char-yellow">
+          <div class="eyes" id="yellow-eyes" style="left: 52px; top: 40px; gap: 20px">
+            <div class="bare-pupil" id="yellow-pupil-l"></div>
+            <div class="bare-pupil" id="yellow-pupil-r"></div>
+          </div>
+          <div class="yellow-mouth" id="yellow-mouth" style="left: 40px; top: 88px"></div>
+        </div>
+      </div>
+    </div>
   </nav>
 
   <main>
     <!-- 仪表盘 -->
     <div class="page active" id="page-dashboard">
       <h2>&#9679; 仪表盘</h2>
-      <p class="desc">项目配置概览和服务状态</p>
+      <p class="desc">管线运行历史、趋势可视化和全局统计</p>
       <div class="dashboard-stats" id="dashboardStats"></div>
       <div class="card">
-        <h3>项目信息</h3>
-        <div id="projectInfo"></div>
+        <h3>历史趋势</h3>
+        <div id="trendChart" style="width:100%;height:260px;overflow:hidden"></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>分级分布</h3>
+          <div id="gradeChart" style="width:100%;height:200px;overflow:hidden"></div>
+        </div>
+        <div class="card">
+          <h3>来源分布（Top 8）</h3>
+          <div id="sourceChart" style="width:100%;height:200px;overflow:hidden"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>关键词频率 Top 20</h3>
+        <div id="keywordChart" style="width:100%;height:220px;overflow:hidden"></div>
+      </div>
+      <div class="card">
+        <h3>近期运行记录</h3>
+        <div id="recentRunsTable"></div>
       </div>
       <div class="card">
         <h3>配置文件状态</h3>
@@ -320,6 +496,227 @@ function toast(msg, type = "info") {
   setTimeout(() => el.remove(), 3500);
 }
 
+// -- 主题切换 --
+const THEME_KEY = "zotero-pipeline-theme";
+const savedTheme = localStorage.getItem(THEME_KEY) || "moonlight";
+document.documentElement.setAttribute("data-theme", savedTheme);
+document.getElementById("themeSelect").value = savedTheme;
+
+function switchTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem(THEME_KEY, theme);
+}
+
+// -- 交互动画角色（引用自 animatedlogin 源码） --
+(function initCharacters() {
+  const scene = document.getElementById("nav-characters");
+  if (!scene) return;
+
+  const purpleEyes = document.getElementById("purple-eyes");
+  const purplePupilL = document.getElementById("purple-pupil-l");
+  const purplePupilR = document.getElementById("purple-pupil-r");
+  const purpleEyeL = document.getElementById("purple-eye-l");
+  const purpleEyeR = document.getElementById("purple-eye-r");
+
+  const blackEyes = document.getElementById("black-eyes");
+  const blackPupilL = document.getElementById("black-pupil-l");
+  const blackPupilR = document.getElementById("black-pupil-r");
+  const blackEyeL = document.getElementById("black-eye-l");
+  const blackEyeR = document.getElementById("black-eye-r");
+
+  const orangeEyes = document.getElementById("orange-eyes");
+  const orangePupilL = document.getElementById("orange-pupil-l");
+  const orangePupilR = document.getElementById("orange-pupil-r");
+  const orangeMouth = document.getElementById("orange-mouth");
+
+  const yellowEyes = document.getElementById("yellow-eyes");
+  const yellowPupilL = document.getElementById("yellow-pupil-l");
+  const yellowPupilR = document.getElementById("yellow-pupil-r");
+  const yellowMouth = document.getElementById("yellow-mouth");
+
+  const purple = document.getElementById("char-purple");
+  const black = document.getElementById("char-black");
+  const orange = document.getElementById("char-orange");
+  const yellow = document.getElementById("char-yellow");
+
+  let mouseX = 0, mouseY = 0;
+  let isPurpleBlinking = false, isBlackBlinking = false;
+
+  function calcPupilOffset(pupilEl, pupilRadius) {
+    const rect = pupilEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = mouseX - cx;
+    const dy = mouseY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxDist = Math.min(rect.width, rect.height) * 1.5 + 30;
+    const limit = Math.min(dist, maxDist);
+    const angle = Math.atan2(dy, dx);
+    const maxOffset = 6;
+    const offset = Math.min(limit / maxDist, 1) * maxOffset;
+    return { x: Math.cos(angle) * offset, y: Math.sin(angle) * offset };
+  }
+
+  document.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function updateCharacters() {
+    const rect = scene.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = mouseX - centerX;
+    const dy = mouseY - centerY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const normX = Math.max(-1, Math.min(1, dx / (rect.width * 0.8)));
+    const normY = Math.max(-1, Math.min(1, dy / (rect.height * 0.5)));
+
+    // Face positions
+    const purplePos = {
+      faceX: normX * 6,
+      faceY: normY * 3,
+      bodySkew: normX * 4,
+    };
+    const blackPos = {
+      faceX: normX * 5,
+      faceY: normY * 2.5,
+      bodySkew: normX * 3.5,
+    };
+    const orangePos = {
+      faceX: normX * 4,
+      faceY: normY * 3,
+      bodySkew: normX * 3,
+    };
+    const yellowPos = {
+      faceX: normX * 5,
+      faceY: normY * 2,
+      bodySkew: normX * 3.5,
+    };
+
+    // ---- Purple body ----
+    purple.style.transform = `skewX(${purplePos.bodySkew}deg)`;
+
+    // Purple eyes
+    purpleEyes.style.left = 45 + purplePos.faceX + "px";
+    purpleEyes.style.top = 40 + purplePos.faceY + "px";
+    const po = calcPupilOffset(purplePupilL, 7);
+    purplePupilL.style.transform = `translate(${po.x}px, ${po.y}px)`;
+    purplePupilR.style.transform = `translate(${po.x}px, ${po.y}px)`;
+
+    // Purple blink
+    purpleEyeL.style.height = isPurpleBlinking ? "2px" : "18px";
+    purpleEyeR.style.height = isPurpleBlinking ? "2px" : "18px";
+
+    // ---- Black body ----
+    black.style.transform = `skewX(${blackPos.bodySkew}deg)`;
+
+    // Black eyes
+    blackEyes.style.left = 26 + blackPos.faceX + "px";
+    blackEyes.style.top = 32 + blackPos.faceY + "px";
+    const bo = calcPupilOffset(blackPupilL, 6);
+    blackPupilL.style.transform = `translate(${bo.x}px, ${bo.y}px)`;
+    blackPupilR.style.transform = `translate(${bo.x}px, ${bo.y}px)`;
+
+    // Black blink
+    blackEyeL.style.height = isBlackBlinking ? "2px" : "16px";
+    blackEyeR.style.height = isBlackBlinking ? "2px" : "16px";
+
+    // ---- Orange body ----
+    orange.style.transform = `skewX(${orangePos.bodySkew}deg)`;
+
+    // Orange eyes
+    orangeEyes.style.left = 82 + orangePos.faceX + "px";
+    orangeEyes.style.top = 90 + orangePos.faceY + "px";
+    const oo = calcPupilOffset(orangePupilL, 6);
+    orangePupilL.style.transform = `translate(${oo.x}px, ${oo.y}px)`;
+    orangePupilR.style.transform = `translate(${oo.x}px, ${oo.y}px)`;
+
+    // ---- Yellow body ----
+    yellow.style.transform = `skewX(${yellowPos.bodySkew}deg)`;
+
+    // Yellow eyes & mouth
+    yellowEyes.style.left = 52 + yellowPos.faceX + "px";
+    yellowEyes.style.top = 40 + yellowPos.faceY + "px";
+    const yo = calcPupilOffset(yellowPupilL, 6);
+    yellowPupilL.style.transform = `translate(${yo.x}px, ${yo.y}px)`;
+    yellowPupilR.style.transform = `translate(${yo.x}px, ${yo.y}px)`;
+    yellowMouth.style.left = 40 + yellowPos.faceX + "px";
+    yellowMouth.style.top = 88 + yellowPos.faceY + "px";
+    yellowMouth.style.transform = "rotate(0deg)";
+
+    requestAnimationFrame(updateCharacters);
+  }
+
+  requestAnimationFrame(updateCharacters);
+
+  // Blink
+  setInterval(() => {
+    isPurpleBlinking = true;
+    setTimeout(() => { isPurpleBlinking = false; }, 150);
+  }, 3000 + Math.random() * 4000);
+
+  setInterval(() => {
+    isBlackBlinking = true;
+    setTimeout(() => { isBlackBlinking = false; }, 150);
+  }, 3500 + Math.random() * 5000);
+
+  // Error / shake animation
+  const shakeIds = ["purple-eyes", "black-eyes", "orange-eyes", "yellow-eyes", "yellow-mouth", "orange-mouth"];
+  let errorRecoverTimer = null;
+
+  function triggerLoginError() {
+    if (errorRecoverTimer) {
+      clearTimeout(errorRecoverTimer);
+      errorRecoverTimer = null;
+    }
+    const shakeEls = shakeIds.map((id) => document.getElementById(id));
+    shakeEls.forEach((el) => el.classList.remove("shake-head"));
+    void document.body.offsetHeight;
+    orangeMouth.classList.add("visible");
+    setTimeout(() => {
+      shakeEls.forEach((el) => el.classList.add("shake-head"));
+    }, 350);
+    errorRecoverTimer = setTimeout(() => {
+      orangeMouth.classList.remove("visible");
+      shakeEls.forEach((el) => el.classList.remove("shake-head"));
+      errorRecoverTimer = null;
+    }, 2500);
+  }
+
+  function doWave() {
+    const bodies = [purple, black, orange, yellow];
+    bodies.forEach((b) => {
+      b.style.transition = "all 0.3s ease-in-out";
+      b.style.transform = "translateY(-8px)";
+    });
+    setTimeout(() => {
+      bodies.forEach((b) => {
+        b.style.transform = "translateY(0px)";
+        setTimeout(() => { b.style.transition = "all 0.7s ease-in-out"; }, 300);
+      });
+    }, 400);
+  }
+
+  window.__characters = {
+    triggerLoginError,
+    doWave,
+  };
+
+  const origLoadDashboard = window.loadDashboard;
+  if (origLoadDashboard) {
+    const patchedLoadDashboard = async function () {
+      try {
+        await origLoadDashboard.call(this);
+        doWave();
+      } catch {
+        triggerLoginError();
+      }
+    };
+    window.loadDashboard = patchedLoadDashboard;
+  }
+})();
+
 // -- 导航 --
 document.querySelectorAll("nav a").forEach(a => {
   a.addEventListener("click", () => {
@@ -362,51 +759,212 @@ async function checkStatus() {
 async function loadDashboard() {
   const status = await checkStatus();
   const stats = document.getElementById("dashboardStats");
-  const info = document.getElementById("projectInfo");
-  const cfgStatus = document.getElementById("configStatus");
 
   if (!status) {
     stats.innerHTML = '<div class="stat-card"><div class="num" style="color:var(--red)">!</div><div class="label">无法连接服务器</div></div>';
     return;
   }
 
-  info.innerHTML = `
-    <div class="form-row"><div><strong>项目根目录</strong><br><span style="font-size:13px;color:var(--text-dim)">${status.root}</span></div>
-    <div><strong>服务器端口</strong><br><span style="font-size:13px;color:var(--text-dim)">${status.port}</span></div></div>
+  const dash = await api("GET", "/dashboard");
+  if (!dash.ok) {
+    stats.innerHTML = '<div class="stat-card"><div class="num" style="color:var(--red)">!</div><div class="label">无法加载仪表盘数据</div></div>';
+    return;
+  }
+
+  const runs = dash.recent_runs || [];
+  const last = runs[0] || {};
+  const gc = last.grade_counts || {};
+  const totalA = runs.reduce((s, r) => s + ((r.grade_counts?.A) || 0), 0);
+  const totalB = runs.reduce((s, r) => s + ((r.grade_counts?.B) || 0), 0);
+
+  stats.innerHTML = `
+    <div class="stat-card"><div class="num">${dash.total_runs}</div><div class="label">总运行次数</div></div>
+    <div class="stat-card"><div class="num">${totalA}</div><div class="label">累计 A 级</div></div>
+    <div class="stat-card"><div class="num">${totalB}</div><div class="label">累计 B 级</div></div>
+    <div class="stat-card"><div class="num">${last.merged||0}</div><div class="label">最近文献数</div></div>
+    <div class="stat-card"><div class="num">${gc.A||0}</div><div class="label">最近 A 级</div></div>
   `;
 
+  renderTrendChart(dash.trends);
+  renderGradeChart(dash.trends);
+  renderSourceChart(dash.source_breakdown);
+  renderKeywordChart(dash.keywords);
+  renderRecentRuns(runs);
+
+  // 配置文件状态
   let cfgHtml = '<div class="grid-3">';
   for (const [key, cfg] of Object.entries(status.configs)) {
     cfgHtml += `<div class="source-card"><div class="info">${cfg.title} <small>${cfg.exists ? '<span class="tag green">存在</span>' : '<span class="tag orange">缺失</span>'}</small></div></div>`;
   }
   cfgHtml += "</div>";
-  cfgStatus.innerHTML = cfgHtml;
+  document.getElementById("configStatus").innerHTML = cfgHtml;
+}
 
-  // 尝试加载上次运行报告获取统计
-  try {
-    const dirs = await api("GET", "/explorer/research_os/pipeline");
-    if (dirs.ok && dirs.files) {
-      const dayDirs = dirs.files.filter(f => f.isDir).sort((a,b) => b.name.localeCompare(a.name)).slice(0,3);
-      let reportRow = '<div class="dashboard-stats">';
-      for (const d of dayDirs) {
-        try {
-          const report = await api("GET", `/explorer/research_os/pipeline/${d.name}/run_report.json`);
-          if (report.ok && report.data) {
-            const r = JSON.parse(report.data);
-            const c = r.counts || {};
-            reportRow += `<div class="stat-card"><div class="num">${c.merged||0}</div><div class="label">${d.name} 总文献</div></div>`;
-            reportRow += `<div class="stat-card"><div class="num">${c.grade_counts?.A||0}</div><div class="label">A 级</div></div>`;
-            reportRow += `<div class="stat-card"><div class="num">${c.grade_counts?.B||0}</div><div class="label">B 级</div></div>`;
-            reportRow += `<div class="stat-card"><div class="num">${c.grade_counts?.C||0}</div><div class="label">C 级</div></div>`;
-          }
-        } catch {}
-      }
-      reportRow += '</div>';
-      if (reportRow.includes('stat-card')) {
-        document.getElementById("dashboardStats").innerHTML = reportRow;
-      }
+function renderTrendChart(trends) {
+  const el = document.getElementById("trendChart");
+  if (!trends || !trends.labels || trends.labels.length < 1) {
+    el.innerHTML = '<span style="color:var(--text-dim);font-size:13px">暂无历史数据</span>';
+    return;
+  }
+  const n = Math.min(trends.labels.length, 20);
+  const labels = trends.labels.slice(-n);
+  const series = {
+    A: trends.A.slice(-n),
+    B: trends.B.slice(-n),
+    C: trends.C.slice(-n),
+    D: trends.D.slice(-n),
+  };
+  const maxVal = Math.max(1, ...series.A, ...series.B, ...series.C, ...series.D);
+  const W = 700, H = 220, padL = 40, padR = 20, padT = 20, padB = 36;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+  const colors = { A: "#3fb950", B: "#58a6ff", C: "#d29922", D: "#8b949e" };
+  const barW = Math.max(3, Math.min(12, (chartW / (n + 1)) * 0.2));
+  const gap = chartW / (n + 1);
+
+  let bars = "";
+  for (let i = 0; i < n; i++) {
+    const x = padL + gap * (i + 1) - barW * 2;
+    let yOff = 0;
+    for (const key of ["A", "B", "C", "D"]) {
+      const h = (series[key][i] / maxVal) * chartH;
+      bars += `<rect x="${x}" y="${padT + chartH - h - yOff}" width="${barW}" height="${Math.max(1, h)}" fill="${colors[key]}" opacity="0.85" rx="1"><title>${key}: ${series[key][i]}</title></rect>`;
+      yOff += h;
     }
-  } catch {}
+    const label = labels[i].length > 5 ? labels[i].slice(-5) : labels[i];
+    bars += `<text x="${x + barW * 0.5}" y="${H - 8}" text-anchor="end" fill="#8b949e" font-size="9" transform="rotate(-45,${x + barW * 0.5},${H - 8})">${label}</text>`;
+  }
+
+  // Y axis labels
+  const yTicks = 4;
+  let yAxis = "";
+  for (let i = 0; i <= yTicks; i++) {
+    const y = padT + chartH - (chartH / yTicks) * i;
+    const val = Math.round((maxVal / yTicks) * i);
+    yAxis += `<text x="${padL - 6}" y="${y + 4}" text-anchor="end" fill="#8b949e" font-size="10">${val}</text>`;
+  }
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%">
+    ${yAxis}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + chartH}" stroke="#30363d" stroke-width="1"/>
+    <line x1="${padL}" y1="${padT + chartH}" x2="${W - padR}" y2="${padT + chartH}" stroke="#30363d" stroke-width="1"/>
+    ${bars}
+    <text x="${padL}" y="${padT - 6}" fill="#3fb950" font-size="11">A</text>
+    <text x="${padL + 24}" y="${padT - 6}" fill="#58a6ff" font-size="11">B</text>
+    <text x="${padL + 46}" y="${padT - 6}" fill="#d29922" font-size="11">C</text>
+    <text x="${padL + 68}" y="${padT - 6}" fill="#8b949e" font-size="11">D</text>
+  </svg>`;
+}
+
+function renderGradeChart(trends) {
+  const el = document.getElementById("gradeChart");
+  if (!trends || !trends.labels || trends.labels.length < 1) {
+    el.innerHTML = '<span style="color:var(--text-dim);font-size:13px">暂无数据</span>';
+    return;
+  }
+  const lastIdx = trends.labels.length - 1;
+  const vals = {
+    A: trends.A[lastIdx] || 0,
+    B: trends.B[lastIdx] || 0,
+    C: trends.C[lastIdx] || 0,
+    D: trends.D[lastIdx] || 0,
+  };
+  const total = vals.A + vals.B + vals.C + vals.D || 1;
+  const colors = ["#3fb950", "#58a6ff", "#d29922", "#8b949e"];
+  const labels = ["A", "B", "C", "D"];
+  const W = 400, H = 180;
+  const barH = 28, gap = 40;
+  const padL = 24, padR = 120, padT = 10;
+
+  let rows = "";
+  labels.forEach((key, i) => {
+    const y = padT + i * gap;
+    const w = (vals[key] / total) * (W - padL - padR);
+    const pct = ((vals[key] / total) * 100).toFixed(1);
+    rows += `<text x="${padL - 6}" y="${y + barH * 0.7}" text-anchor="end" fill="#8b949e" font-size="13">${key}</text>`;
+    rows += `<rect x="${padL}" y="${y}" width="${Math.max(2, w)}" height="${barH}" fill="${colors[i]}" rx="3"><title>${vals[key]} 篇 (${pct}%)</title></rect>`;
+    rows += `<text x="${padL + Math.max(w, 4) + 6}" y="${y + barH * 0.7}" fill="${colors[i]}" font-size="13">${vals[key]} (${pct}%)</text>`;
+  });
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%">${rows}</svg>`;
+}
+
+function renderSourceChart(breakdown) {
+  const el = document.getElementById("sourceChart");
+  if (!breakdown || breakdown.length < 1) {
+    el.innerHTML = '<span style="color:var(--text-dim);font-size:13px">暂无数据</span>';
+    return;
+  }
+  const top = breakdown.slice(0, 8);
+  const colors = ["#3fb950","#58a6ff","#d29922","#f85149","#bc8cff","#79c0ff","#ff7b72","#8b949e"];
+  const W = 400, H = 180;
+  const barH = 18, gap = 22;
+  const padL = 110, padR = 60, padT = 8;
+
+  let rows = "";
+  top.forEach((item, i) => {
+    const y = padT + i * gap;
+    const maxW = W - padL - padR;
+    const w = Math.max(2, (item.数量 / Math.max(1, top[0].数量)) * maxW);
+    rows += `<text x="${padL - 6}" y="${y + barH * 0.7}" text-anchor="end" fill="#8b949e" font-size="10">${item.来源.length > 10 ? item.来源.slice(0,10)+".." : item.来源}</text>`;
+    rows += `<rect x="${padL}" y="${y}" width="${w}" height="${barH}" fill="${colors[i % colors.length]}" rx="2"><title>${item.来源}: ${item.数量} 篇</title></rect>`;
+    rows += `<text x="${padL + w + 4}" y="${y + barH * 0.7}" fill="#8b949e" font-size="10">${item.数量}</text>`;
+  });
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%">${rows}</svg>`;
+}
+
+function renderKeywordChart(keywords) {
+  const el = document.getElementById("keywordChart");
+  if (!keywords || keywords.length < 1) {
+    el.innerHTML = '<span style="color:var(--text-dim);font-size:13px">暂无历史数据，运行管线后查看</span>';
+    return;
+  }
+  const top = keywords.slice(0, 20);
+  const maxCount = top[0].出现次数 || 1;
+  const W = 700, H = 220;
+  const barH = 10, gap = 11;
+  const padL = 110, padR = 50, padT = 6;
+
+  let rows = "";
+  top.forEach((item, i) => {
+    const y = padT + i * gap;
+    const w = (item.出现次数 / maxCount) * (W - padL - padR);
+    rows += `<text x="${padL - 6}" y="${y + barH * 0.7}" text-anchor="end" fill="#8b949e" font-size="9">${item.关键词.length > 10 ? item.关键词.slice(0,10)+".." : item.关键词}</text>`;
+    rows += `<rect x="${padL}" y="${y}" width="${Math.max(2, w)}" height="${barH}" fill="var(--accent)" opacity="0.8" rx="2"><title>${item.关键词}: ${item.出现次数}</title></rect>`;
+    rows += `<text x="${padL + Math.max(w, 4) + 4}" y="${y + barH * 0.7}" fill="#8b949e" font-size="9">${item.出现次数}</text>`;
+  });
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%">${rows}</svg>`;
+}
+
+function renderRecentRuns(runs) {
+  const el = document.getElementById("recentRunsTable");
+  if (!runs || runs.length < 1) {
+    el.innerHTML = '<span style="color:var(--text-dim);font-size:13px">暂无运行记录</span>';
+    return;
+  }
+  const rows = runs.map((r, i) =>
+    `<tr style="${i === 0 ? 'font-weight:600' : ''}">
+      <td>${r.date}</td>
+      <td>${r.merged}</td>
+      <td style="color:#3fb950">${r.grade_counts?.A||0}</td>
+      <td style="color:#58a6ff">${r.grade_counts?.B||0}</td>
+      <td style="color:#d29922">${r.grade_counts?.C||0}</td>
+      <td style="color:#8b949e">${r.grade_counts?.D||0}</td>
+      <td>${r.rss_raw||0} / ${r.crossref_raw||0} / ${r.arxiv_raw||0}</td>
+    </tr>`
+  ).join("");
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:1px solid var(--border);color:var(--text-dim)">
+      <th style="text-align:left;padding:6px 8px">日期</th>
+      <th style="text-align:right;padding:6px 8px">合并</th>
+      <th style="text-align:right;padding:6px 8px">A</th>
+      <th style="text-align:right;padding:6px 8px">B</th>
+      <th style="text-align:right;padding:6px 8px">C</th>
+      <th style="text-align:right;padding:6px 8px">D</th>
+      <th style="text-align:right;padding:6px 8px">RSS/CR/AR</th>
+    </tr></thead>
+    <tbody>${rows}</tbody></table>`;
 }
 
 // -- 通用加载/保存 --

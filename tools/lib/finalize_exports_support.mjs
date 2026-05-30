@@ -60,10 +60,59 @@ export function buildStage4ExportAudit({
   paperAssetOutputs = {},
   result = {},
   skillAvailability = {},
+  nodeError = "",
 } = {}) {
   const writebackFailuresCount = Array.isArray(writebackSummary?.failures) ? writebackSummary.failures.length : 0;
   const translationFailuresCount = Number(backfillReport?.failure_count || 0);
   const excludedDCount = Number(runReport?.counts?.d_skipped || result?.excluded_d_count || 0);
+
+  if (mode === "node_fallback") {
+    return {
+      stage4_export_status: "success",
+      export_method: "node_fallback",
+      export_skill: null,
+      spreadsheets_skill_available: false,
+      spreadsheets_skill_unavailable_reason: skillAvailability?.reason || null,
+      export_output_path: requestedOutputPath,
+      export_root: reviewRoot,
+      requested_output_path: requestedOutputPath,
+      actual_output_path: result?.daily_output || null,
+      desktop_export_disabled: true,
+      export_input_files: exportInputFiles,
+      export_rows_count: result?.daily_rows || 0,
+      export_excluded_d_count: excludedDCount,
+      export_writeback_failures_count: writebackFailuresCount,
+      export_translation_failures_count: translationFailuresCount,
+      export_error: null,
+      export_degraded: true,
+      export_degrade_reason: "spreadsheets_skill_unavailable_fallback_node",
+      export_fallback_chain: fallbackChain,
+      final_xlsx_outputs: ["隔日报.xlsx", "双周报.xlsx"],
+      paper_asset_outputs: paperAssetOutputs,
+      export_generated_at: generatedAt,
+      manual_required: false,
+      export_outputs: {
+        every_other_day_report: result?.daily_output || requestedOutputPath,
+        biweekly_report: result?.biweekly_output || null,
+        ...paperAssetOutputs,
+      },
+      daily_workbook_sheets: ["每日反馈", "本次分级分布", "来源分布", "关键词频率"],
+      standard_summary_sheet_exported: false,
+      standard_summary_sheet_name: "",
+      standard_summary_sheet_schema: "",
+      standard_summary_generated: false,
+      standard_summary_generated_from_fallback: false,
+      standard_summary_unavailable: false,
+      standard_summary_user_feedback_columns_present: false,
+      node_fallback_details: {
+        trend_count: result?.trend_count || 0,
+        source_breakdown_count: result?.source_breakdown?.length || 0,
+        keyword_count: result?.keyword_count || 0,
+        biweekly_sheets: result?.biweekly_sheets || [],
+        grade_distribution: result?.grade_distribution || [],
+      },
+    };
+  }
 
   if (mode === "manual_required") {
     return {
@@ -97,6 +146,7 @@ export function buildStage4ExportAudit({
         "Ensure @oai/artifact-tool is available in the active AI workspace runtime.",
         "Rerun: node tools/finalize_research_os_exports.mjs",
       ],
+      node_fallback_error: nodeError || null,
     };
   }
 
