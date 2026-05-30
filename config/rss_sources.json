@@ -1,15 +1,76 @@
 {
-  "version": 1,
-  "description": "RSS 订阅源列表",
+  "version": 2,
+  "description": "RSS 订阅源列表 — 人工智能/计算机视觉/自然语言处理方向",
+  "note": "顶级会议（CVPR/ICCV/ECCV/NeurIPS/ICML/ICLR/ACL/EMNLP/AAAI/IJCAI）通常不提供独立 RSS 订阅，可通过 arXiv 子分类 RSS 追踪其最新论文。",
   "sources": [
     {
-      "name": "Nature",
-      "url": "https://www.nature.com/nature.rss",
+      "name": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+      "url": "https://ieeexplore.ieee.org/rss/TOC34.XML",
       "enabled": true
     },
     {
-      "name": "Science",
-      "url": "https://www.science.org/action/showFeed?type=etoc&feed=rss&jc=science",
+      "name": "International Journal of Computer Vision",
+      "url": "https://link.springer.com/search.rss?facet-journal-id=11263",
+      "enabled": true
+    },
+    {
+      "name": "IEEE Transactions on Image Processing",
+      "url": "https://ieeexplore.ieee.org/rss/TOC83.XML",
+      "enabled": true
+    },
+    {
+      "name": "IEEE Transactions on Neural Networks and Learning Systems",
+      "url": "https://ieeexplore.ieee.org/rss/TOC72.XML",
+      "enabled": true
+    },
+    {
+      "name": "Nature Machine Intelligence",
+      "url": "https://www.nature.com/natmachintell.rss",
+      "enabled": true
+    },
+    {
+      "name": "Journal of Machine Learning Research",
+      "url": "https://www.jmlr.org/jmlr.xml",
+      "enabled": true
+    },
+    {
+      "name": "Pattern Recognition",
+      "url": "https://rss.sciencedirect.com/publication/science/00313203",
+      "enabled": true
+    },
+    {
+      "name": "Artificial Intelligence",
+      "url": "https://rss.sciencedirect.com/publication/science/00043702",
+      "enabled": true
+    },
+    {
+      "name": "Machine Learning",
+      "url": "https://link.springer.com/search.rss?facet-journal-id=10994",
+      "enabled": true
+    },
+    {
+      "name": "Medical Image Analysis",
+      "url": "https://rss.sciencedirect.com/publication/science/13618415",
+      "enabled": true
+    },
+    {
+      "name": "arXiv cs.CV (Computer Vision)",
+      "url": "http://export.arxiv.org/rss/cs.CV",
+      "enabled": true
+    },
+    {
+      "name": "arXiv cs.CL (Computation and Language / NLP)",
+      "url": "http://export.arxiv.org/rss/cs.CL",
+      "enabled": true
+    },
+    {
+      "name": "arXiv cs.LG (Machine Learning)",
+      "url": "http://export.arxiv.org/rss/cs.LG",
+      "enabled": true
+    },
+    {
+      "name": "arXiv cs.AI (Artificial Intelligence)",
+      "url": "http://export.arxiv.org/rss/cs.AI",
       "enabled": true
     }
   ]

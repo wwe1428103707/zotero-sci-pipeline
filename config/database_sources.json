@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "description": "统一多数据库检索配置 — 人工智能研究方向",
+  "version": 3,
+  "description": "统一多数据库检索配置 — 人工智能/计算机视觉/自然语言处理方向",
   "sources": {
     "pubmed": {
       "enabled": false,
@@ -9,13 +9,16 @@
       "keyword_groups": {
         "required": [
           ["artificial intelligence", "machine learning", "deep learning"],
-          ["diagnosis", "prediction", "classification", "segmentation"]
+          ["computer vision", "natural language processing", "large language model"]
         ],
         "optional": [
-          "medical imaging",
           "transformer",
-          "large language model",
-          "clinical decision support"
+          "diffusion model",
+          "vision-language",
+          "multi-modal",
+          "representation learning",
+          "clinical NLP",
+          "medical image analysis"
         ],
         "negative": [
           "review",
@@ -34,12 +37,15 @@
       "query": "",
       "keyword_groups": {
         "required": [
-          ["machine learning", "deep learning", "artificial intelligence"]
+          ["deep learning", "transformer", "large language model"],
+          ["computer vision", "natural language processing"]
         ],
         "optional": [
           "medical imaging",
           "diagnosis",
-          "biomedical"
+          "biomedical NLP",
+          "clinical decision support",
+          "foundation model"
         ],
         "negative": [
           "case report"
@@ -55,16 +61,30 @@
       "query": "",
       "keyword_groups": {
         "required": [
-          ["machine learning", "deep learning", "artificial intelligence"],
-          ["transformer", "large language model", "diffusion", "reinforcement learning", "representation learning"]
+          ["deep learning", "transformer", "foundation model", "large language model"],
+          ["diffusion model", "vision transformer", "self-supervised learning", "reinforcement learning"]
         ],
         "optional": [
           "computer vision",
           "natural language processing",
           "multi-modal",
+          "object detection",
+          "semantic segmentation",
+          "image generation",
+          "machine translation",
+          "text summarization",
+          "question answering",
+          "reasoning",
+          "planning",
+          "agent",
+          "knowledge graph",
+          "graph neural network",
+          "contrastive learning",
+          "representation learning",
           "generative model",
-          "self-supervised learning",
-          "knowledge graph"
+          "autonomous driving",
+          "robotics",
+          "speech recognition"
         ],
         "negative": [
           "review",
@@ -83,15 +103,31 @@
       "keyword_groups": {
         "required": [
           ["deep learning", "transformer", "large language model", "foundation model"],
-          ["reasoning", "planning", "reinforcement learning", "representation learning"]
+          ["diffusion model", "vision-language model", "multi-modal learning"]
         ],
         "optional": [
           "computer vision",
           "natural language processing",
-          "multi-modal learning",
-          "diffusion model",
+          "object detection",
+          "image segmentation",
+          "image captioning",
+          "visual question answering",
+          "text generation",
+          "sentiment analysis",
+          "named entity recognition",
+          "relation extraction",
+          "reinforcement learning",
+          "reasoning",
+          "planning",
+          "representation learning",
+          "self-supervised learning",
           "graph neural network",
-          "self-supervised learning"
+          "knowledge distillation",
+          "model compression",
+          "adversarial learning",
+          "generative model",
+          "autonomous driving",
+          "robotics"
         ],
         "negative": [
           "review",
@@ -107,13 +143,31 @@
       "query": "",
       "keyword_groups": {
         "required": [
-          ["machine learning", "deep learning", "artificial intelligence"]
+          ["machine learning", "deep learning", "artificial intelligence"],
+          ["computer vision", "natural language processing"]
         ],
         "optional": [
-          "computer vision",
-          "natural language processing",
           "large language model",
-          "reinforcement learning"
+          "transformer",
+          "diffusion model",
+          "multi-modal",
+          "reinforcement learning",
+          "reasoning",
+          "planning",
+          "knowledge graph",
+          "graph neural network",
+          "object detection",
+          "semantic segmentation",
+          "image generation",
+          "machine translation",
+          "text summarization",
+          "question answering",
+          "representation learning",
+          "self-supervised learning",
+          "vision transformer",
+          "generative model",
+          "autonomous driving",
+          "robotics"
         ],
         "negative": []
       },
@@ -126,13 +180,31 @@
       "keyword_groups": {
         "required": [
           ["deep learning", "machine learning", "transformer"],
-          ["large language model", "foundation model", "multi-modal", "reasoning"]
+          ["large language model", "foundation model", "multi-modal", "vision-language"]
         ],
         "optional": [
           "computer vision",
           "natural language processing",
-          "generative ai",
-          "reinforcement learning"
+          "object detection",
+          "semantic segmentation",
+          "image generation",
+          "diffusion model",
+          "machine translation",
+          "text summarization",
+          "question answering",
+          "reasoning",
+          "planning",
+          "agent",
+          "knowledge graph",
+          "graph neural network",
+          "representation learning",
+          "self-supervised learning",
+          "contrastive learning",
+          "generative model",
+          "reinforcement learning",
+          "autonomous driving",
+          "robotics",
+          "generative ai"
         ],
         "negative": [
           "review",

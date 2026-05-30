@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { proxyFetch } from "./proxy_config.mjs";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(MODULE_DIR, "../..");
@@ -403,7 +404,7 @@ async function fetchTranslation(runtime, prompt, { maxOutputTokens, stream = run
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(new Error("translation_timeout")), runtime.timeout_ms);
   try {
-    const res = await fetch(runtime.endpoint, {
+    const res = await proxyFetch(runtime.endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

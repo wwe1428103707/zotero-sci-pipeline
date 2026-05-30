@@ -15,6 +15,7 @@ import { applyScreeningStandardsLearningUpdate, generateRuleSuggestionsFromFeedb
 import { evaluateRunInterval } from "./lib/schedule_support.mjs";
 import { evaluatePwshGate } from "./lib/pwsh_gate.mjs";
 import { buildRuntimeConfig } from "./lib/runtime_config.mjs";
+import { proxyFetch } from "./lib/proxy_config.mjs";
 import {
   buildCrossrefWorksUrl,
   buildNcbiESearchUrl,
@@ -125,7 +126,7 @@ async function fetchText(url, timeoutMs = 15000) {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: controller.signal, redirect: "follow" });
+    const res = await proxyFetch(url, { signal: controller.signal, redirect: "follow" });
     if (!res.ok) throw new Error(`HTTP_${res.status}`);
     return await res.text();
   } finally {

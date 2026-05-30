@@ -7,15 +7,21 @@
 <style>
 :root {
   --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
   --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+  --transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 html[data-theme="dark-github"] {
   --bg: #0d1117;
   --surface: #161b22;
+  --surface-elevated: #1c2333;
   --border: #30363d;
   --text: #e6edf3;
   --text-dim: #8b949e;
   --accent: #58a6ff;
+  --accent-soft: rgba(88,166,255,0.12);
   --green: #3fb950;
   --red: #f85149;
   --orange: #d29922;
@@ -29,10 +35,12 @@ html[data-theme="dark-github"] {
 html[data-theme="deep-blue"] {
   --bg: #0a1628;
   --surface: #0f1d3d;
+  --surface-elevated: #132952;
   --border: #1e3a6b;
   --text: #d9e6f7;
   --text-dim: #6b8db5;
   --accent: #4d9fff;
+  --accent-soft: rgba(77,159,255,0.12);
   --green: #4ade80;
   --red: #f87171;
   --orange: #fbbf24;
@@ -46,10 +54,12 @@ html[data-theme="deep-blue"] {
 html[data-theme="aurora-green"] {
   --bg: #0d1f14;
   --surface: #142b1e;
+  --surface-elevated: #1a3a28;
   --border: #1f4a30;
   --text: #d4edda;
   --text-dim: #6ba77d;
   --accent: #34d399;
+  --accent-soft: rgba(52,211,153,0.12);
   --green: #4ade80;
   --red: #f87171;
   --orange: #facc15;
@@ -63,10 +73,12 @@ html[data-theme="aurora-green"] {
 html[data-theme="warm-orange"] {
   --bg: #1c130d;
   --surface: #2a1c14;
+  --surface-elevated: #35261c;
   --border: #4a3020;
   --text: #f0e3d6;
   --text-dim: #b5947a;
   --accent: #f59e0b;
+  --accent-soft: rgba(245,158,11,0.12);
   --green: #4ade80;
   --red: #f87171;
   --orange: #fbbf24;
@@ -80,10 +92,12 @@ html[data-theme="warm-orange"] {
 html[data-theme="moonlight"] {
   --bg: #f6f8fa;
   --surface: #ffffff;
+  --surface-elevated: #f0f2f5;
   --border: #d0d7de;
   --text: #1f2328;
   --text-dim: #656d76;
   --accent: #0969da;
+  --accent-soft: rgba(9,105,218,0.08);
   --green: #1a7f37;
   --red: #cf222e;
   --orange: #9a6700;
@@ -95,75 +109,85 @@ html[data-theme="moonlight"] {
   --nav-active: rgba(9,105,218,0.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top:0; z-index: 100; }
-header h1 { font-size: 18px; font-weight: 600; }
+::selection { background: var(--accent-soft); color: var(--text); }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top:0; z-index: 100; }
+header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
 header h1 span { color: var(--accent); }
-header .status { margin-left: auto; font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
-header .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-header .dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+header .status { margin-left: auto; font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+header .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+header .dot.online { background: var(--green); box-shadow: 0 0 5px var(--green); }
 header .dot.offline { background: var(--red); }
-.container { display: flex; height: calc(100vh - 56px); }
-nav { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 12px 0; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; }
-nav a { display: flex; align-items: center; gap: 8px; padding: 10px 20px; color: var(--text-dim); text-decoration: none; font-size: 14px; border-left: 3px solid transparent; transition: all .15s; cursor: pointer; }
+.container { display: flex; height: calc(100vh - 52px); }
+nav { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 8px 0; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; }
+nav a { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: var(--text-dim); text-decoration: none; font-size: 13px; border-left: 3px solid transparent; transition: var(--transition); cursor: pointer; }
 nav a:hover { color: var(--text); background: var(--nav-hover); }
-nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--nav-active); }
-nav a .icon { font-size: 16px; width: 20px; text-align: center; }
-main { flex: 1; padding: 24px 32px; overflow-y: auto; }
+nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--nav-active); font-weight: 500; }
+nav a .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+main { flex: 1; padding: 20px 28px; overflow-y: auto; }
 .page { display: none; }
 .page.active { display: block; }
-.page h2 { font-size: 22px; margin-bottom: 4px; }
-.page .desc { color: var(--text-dim); font-size: 14px; margin-bottom: 20px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
-.card h3 { font-size: 15px; margin-bottom: 12px; color: var(--accent); }
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 4px; }
-.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; font-family: inherit; }
-.form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88,166,255,0.15); }
-.form-group textarea { min-height: 100px; resize: vertical; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 14px; line-height: 1.6; }
-.form-group input[type="number"] { max-width: 120px; }
-.form-group .hint { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.form-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: all .15s; }
+.page h2 { font-size: 20px; font-weight: 600; margin-bottom: 2px; letter-spacing: -0.01em; }
+.page .desc { color: var(--text-dim); font-size: 13px; margin-bottom: 18px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 14px; transition: var(--transition); }
+.card:hover { border-color: color-mix(in srgb, var(--border) 100%, var(--accent) 20%); }
+.card h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--accent); letter-spacing: -0.01em; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-dim); margin-bottom: 4px; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; font-family: inherit; transition: var(--transition); }
+.form-group input:hover, .form-group textarea:hover, .form-group select:hover { border-color: color-mix(in srgb, var(--border) 100%, var(--text-dim) 30%); }
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.form-group textarea { min-height: 90px; resize: vertical; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 13px; line-height: 1.6; }
+.form-group input[type="number"] { max-width: 110px; }
+.form-group .hint { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.form-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: var(--transition); }
+.btn:active { transform: scale(0.97); }
 .btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { filter: brightness(1.1); }
-.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary:hover { filter: brightness(1.12); }
+.btn-primary:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .btn-success { background: var(--green); color: #fff; }
-.btn-success:hover { filter: brightness(1.1); }
+.btn-success:hover { filter: brightness(1.12); }
 .btn-danger { background: var(--red); color: #fff; }
-.btn-danger:hover { filter: brightness(1.1); }
+.btn-danger:hover { filter: brightness(1.12); }
 .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-.btn-outline:hover { border-color: var(--text-dim); }
-.btn-sm { padding: 4px 12px; font-size: 12px; }
-.toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: var(--radius); font-size: 14px; z-index: 999; max-width: 400px; animation: slideIn .3s; }
+.btn-outline:hover { border-color: var(--text-dim); background: var(--accent-soft); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.toast { position: fixed; top: 16px; right: 16px; padding: 10px 18px; border-radius: var(--radius); font-size: 13px; z-index: 999; max-width: 380px; animation: slideIn .35s cubic-bezier(0.16, 1, 0.3, 1); }
 .toast.success { background: var(--toast-bg-s); border: 1px solid var(--green); color: var(--green); }
 .toast.error { background: var(--toast-bg-e); border: 1px solid var(--red); color: var(--red); }
 .toast.info { background: var(--toast-bg-i); border: 1px solid var(--accent); color: var(--accent); }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-.actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
 .mt-8 { margin-top: 8px; }
 .mb-8 { margin-bottom: 8px; }
 .flex { display: flex; align-items: center; gap: 8px; }
 .flex-wrap { flex-wrap: wrap; }
 .gap-4 { gap: 4px; }
-.json-editor { width: 100%; min-height: 400px; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 14px; line-height: 1.7; tab-size: 2; padding: 16px; }
-.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.json-editor { width: 100%; min-height: 380px; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 13px; line-height: 1.7; tab-size: 2; padding: 14px; background: color-mix(in srgb, var(--bg) 100%, black 5%); }
+.tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; background: var(--accent-soft); color: var(--accent); }
 .tag.green { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
 .tag.orange { background: color-mix(in srgb, var(--orange) 15%, transparent); color: var(--orange); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-.checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
-.checkbox-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; }
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.checkbox-group label { display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; padding: 3px 0; }
 .checkbox-group input[type="checkbox"] { width: auto; accent-color: var(--accent); }
-.source-toggle { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; }
+.source-toggle { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; transition: var(--transition); }
+.source-toggle:hover { border-color: color-mix(in srgb, var(--border) 100%, var(--accent) 20%); }
 .source-toggle input { width: auto; accent-color: var(--accent); }
-.dashboard-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
-.stat-card .num { font-size: 28px; font-weight: 700; color: var(--accent); }
-.stat-card .label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-.toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+.dashboard-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 12px; text-align: center; transition: var(--transition); }
+.stat-card:hover { border-color: color-mix(in srgb, var(--border) 100%, var(--accent) 25%); }
+.stat-card .num { font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+.stat-card .label { font-size: 11px; color: var(--text-dim); margin-top: 3px; font-weight: 500; }
+.toggle-switch { position: relative; display: inline-block; width: 34px; height: 19px; flex-shrink: 0; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 /* 侧边栏交互动画角色 — 引用自 animatedlogin 源码 */
 #nav-characters { position: relative; width: 220px; height: 165px; margin-top: auto; flex-shrink: 0; overflow: hidden; }
@@ -195,33 +219,68 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
   80% { translate: 1px 0; }
   90% { translate: -0.5px 0; }
 }
-.toggle-slider::before { content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
+
+/* 角色扩展动画 */
+@keyframes bounceUp {
+  0%   { transform: translateY(0); }
+  30%  { transform: translateY(-10px); }
+  50%  { transform: translateY(-6px); }
+  70%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+@keyframes thinkSway {
+  0%,100% { transform: skewX(0deg); }
+  25% { transform: skewX(2deg); }
+  75% { transform: skewX(-1.5deg); }
+}
+@keyframes gentleNod {
+  0%,100% { transform: translateY(0) skewX(0deg); }
+  30%  { transform: translateY(-3px) skewX(1deg); }
+  60%  { transform: translateY(0) skewX(0deg); }
+}
+@keyframes lipQuiver {
+  0%,100% { height: 4px; }
+  25%  { height: 2px; }
+  75%  { height: 3px; }
+}
+
+.toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 34px; cursor: pointer; transition: var(--transition); }
+.toggle-slider::before { content: ""; position: absolute; height: 13px; width: 13px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: var(--transition); }
 .toggle-switch input:checked + .toggle-slider { background: var(--green); }
-.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
-.source-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; }
-.source-card .info { font-size: 14px; }
-.source-card .info small { color: var(--text-dim); font-size: 12px; display: block; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(15px); }
+.source-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 6px; transition: var(--transition); }
+.source-card:hover { border-color: color-mix(in srgb, var(--border) 100%, var(--accent) 15%); }
+.source-card .info { font-size: 13px; }
+.source-card .info small { color: var(--text-dim); font-size: 11px; display: block; margin-top: 1px; }
 .loading { opacity: .5; pointer-events: none; }
-.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.pipeline-output { background: #000; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; max-height: 400px; overflow: auto; white-space: pre-wrap; color: #0f0; margin-top: 8px; }
-.md-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 14px; line-height: 1.7; margin-top: 8px; max-height: 400px; overflow-y: auto; }
-.md-preview h1 { font-size: 20px; margin: 12px 0 8px; }
-.md-preview h2 { font-size: 17px; margin: 10px 0 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
-.md-preview h3 { font-size: 15px; margin: 8px 0 4px; }
-.md-preview ul { padding-left: 20px; }
+.pipeline-output { background: #0a0a0a; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-family: "Cascadia Code", "JetBrains Mono", monospace; font-size: 12px; max-height: 400px; overflow: auto; white-space: pre-wrap; color: var(--green); margin-top: 8px; line-height: 1.5; }
+.md-preview { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-size: 13px; line-height: 1.7; margin-top: 8px; max-height: 400px; overflow-y: auto; }
+.md-preview h1 { font-size: 18px; margin: 10px 0 6px; }
+.md-preview h2 { font-size: 16px; margin: 8px 0 5px; border-bottom: 1px solid var(--border); padding-bottom: 3px; }
+.md-preview h3 { font-size: 14px; margin: 6px 0 3px; }
+.md-preview ul { padding-left: 18px; }
 .md-preview li { margin: 2px 0; }
 .md-preview strong { color: var(--accent); }
+.recent-runs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.recent-runs-table thead th { text-align: left; padding: 8px 8px; color: var(--text-dim); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.recent-runs-table thead th:not(:first-child) { text-align: right; }
+.recent-runs-table tbody td { padding: 8px 8px; border-bottom: 1px solid color-mix(in srgb, var(--border) 100%, transparent 60%); }
+.recent-runs-table tbody td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.recent-runs-table tbody tr:last-child td { border-bottom: none; }
+.recent-runs-table tbody tr:hover td { background: var(--accent-soft); }
+.recent-runs-table tbody tr.latest-row td { font-weight: 600; }
 @media (max-width: 768px) {
   nav { display: none; }
-  main { padding: 16px; }
+  main { padding: 12px; }
   .form-row, .form-row-3, .form-row-4, .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
-#modalOverlay input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; }
-#modalOverlay input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); }
+#modalOverlay input { width: 100%; padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; transition: var(--transition); }
+#modalOverlay input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 .theme-switcher { display: flex; align-items: center; gap: 6px; margin-right: 12px; }
-.theme-label { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
-#themeSelect { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; outline: none; font-family: inherit; }
+.theme-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+#themeSelect { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 11px; cursor: pointer; outline: none; font-family: inherit; transition: var(--transition); }
 #themeSelect:focus { border-color: var(--accent); }
 #themeSelect option { background: var(--surface); color: var(--text); }
 </style>
@@ -258,6 +317,7 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
     <a data-page="screening_standards"><span class="icon">&#9997;</span> 筛选标准</a>
     <a data-page="title_translation"><span class="icon">&#9881;</span> 翻译配置</a>
     <a data-page="preference_learning"><span class="icon">&#9881;</span> 偏好学习</a>
+    <a data-page="proxy"><span class="icon">&#9881;</span> 代理设置</a>
     <a data-page="env"><span class="icon">&#9881;</span> 环境变量</a>
     <a data-page="pipeline"><span class="icon">&#9654;</span> 运行管线</a>
     <div id="nav-characters">
@@ -423,6 +483,7 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
         <button class="btn btn-primary" onclick="saveConfig('title_translation')">&#10003; 保存</button>
         <button class="btn btn-outline" onclick="loadConfig('title_translation')">&#8635; 刷新</button>
       </div>
+
     </div>
 
     <!-- 偏好学习 -->
@@ -433,6 +494,60 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
       <div class="actions">
         <button class="btn btn-primary" onclick="saveConfig('preference_learning')">&#10003; 保存</button>
         <button class="btn btn-outline" onclick="loadConfig('preference_learning')">&#8635; 刷新</button>
+      </div>
+    </div>
+
+    <!-- 代理设置 -->
+    <div class="page" id="page-proxy">
+      <h2>&#9881; 代理设置</h2>
+      <p class="desc">配置网络代理，用于 Sci-Hub 下载、LLM 翻译 API 等外部网络请求。</p>
+      <div class="card">
+        <div class="form-row">
+          <label class="form-label" style="min-width:140px">启用代理</label>
+          <label class="switch">
+            <input type="checkbox" id="proxy-enabled">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="form-label" style="min-width:140px">协议</label>
+          <select id="proxy-protocol" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+            <option value="http">HTTP</option>
+            <option value="https">HTTPS</option>
+            <option value="socks5">SOCKS5</option>
+            <option value="socks5h">SOCKS5h</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label" style="min-width:140px">服务器地址</label>
+          <input type="text" id="proxy-host" placeholder="127.0.0.1" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div class="form-row">
+          <label class="form-label" style="min-width:140px">端口</label>
+          <input type="number" id="proxy-port" placeholder="10809" min="1" max="65535" style="width:120px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div class="form-row">
+          <label class="form-label" style="min-width:140px">用户名（可选）</label>
+          <input type="text" id="proxy-username" placeholder="" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div class="form-row">
+          <label class="form-label" style="min-width:140px">密码（可选）</label>
+          <input type="password" id="proxy-password" placeholder="" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div class="form-row">
+          <label class="form-label" style="min-width:140px">直连列表 (no_proxy)</label>
+          <input type="text" id="proxy-no-proxy" placeholder="127.0.0.1,localhost,::1" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <details style="margin-top:8px;color:var(--text-dim);font-size:12px">
+          <summary style="cursor:pointer">no_proxy 说明</summary>
+          <p style="margin-top:6px;line-height:1.6">逗号分隔：<code>127.0.0.1</code> 精确匹配 IP，<code>.example.com</code> 匹配域名及其子域名。默认已包含本地地址，外部请求走代理。</p>
+        </details>
+        <div class="actions" style="margin-top:16px">
+          <button class="btn btn-primary" onclick="saveProxyConfig()">&#10003; 保存代理配置</button>
+          <button class="btn btn-outline" onclick="testProxyConnection()">&#9654; 测试连接</button>
+          <button class="btn btn-outline" onclick="loadProxyConfig()">&#8635; 刷新</button>
+        </div>
+        <div id="proxyTestResult" style="margin-top:10px;font-size:13px"></div>
       </div>
     </div>
 
@@ -454,13 +569,128 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
       <div class="card">
         <h3>阶段 1：入库与分级</h3>
         <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">RSS + 数据库检索 → 去重合并 → AI 分级(A/B/C/D)</p>
-        <button class="btn btn-primary" onclick="runStage1()">&#9654; 运行 Stage 1</button>
+        <button class="btn btn-primary" onclick="runStage1()" id="btn-stage1">&#9654; 运行 Stage 1</button>
       </div>
       <div class="card">
-        <h3>完整管线（Stage 1-4）</h3>
-        <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">入库 → 写回 Zotero → 翻译 → 导出报表</p>
-        <button class="btn btn-success" onclick="runFullPipeline()">&#9654; 运行完整管线</button>
+        <h3>完整管线（Stage 1-4 + PDF 下载）</h3>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">入库分级 → Zotero 写回 → 标题翻译 → Excel 导出 → PDF 自动下载</p>
+        <div class="form-row" style="margin-bottom:12px">
+          <label class="form-label" style="min-width:90px">下载分级</label>
+          <select id="full-grade" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+            <option value="A">A (核心相关)</option>
+            <option value="A,B">A+B (核心+主题)</option>
+            <option value="A,B,C">A+B+C (核心+主题+背景)</option>
+          </select>
+          <label class="form-label" style="min-width:60px;margin-left:16px">下载上限</label>
+          <input type="number" id="full-limit" value="0" min="0" placeholder="0=不限制" style="width:90px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <button class="btn btn-success" onclick="runFullCombinedPipeline()" id="btn-full">&#9654; 运行完整管线</button>
       </div>
+      <div class="card">
+        <h3>常用管线（Stage 1-4）</h3>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">入库分级 → Zotero 写回 → 标题翻译 → Excel 导出（不含 PDF 下载）</p>
+        <button class="btn btn-primary" onclick="runCommonPipeline()" id="btn-common">&#9654; 运行常用管线</button>
+      </div>
+
+      <hr style="margin:24px 0;border-color:var(--border)">
+
+      <!-- 说明卡片 -->
+      <div class="card" style="background:var(--bg);border:1px dashed var(--border)">
+        <h3 style="font-size:14px;margin-bottom:8px">&#8505; 操作说明</h3>
+        <p style="font-size:13px;color:var(--text-dim);line-height:1.7">
+          <strong>默认范围：</strong>系统默认仅处理<strong>最近一次管线执行批次</strong>（即最新日期子集合，如 <code>2026-05-30</code>），避免遍历全部文献池。
+          <br>
+          <strong>自定义目录：</strong>如需指定其他目录，点击「<strong>浏览 Zotero 目录</strong>」按钮，从 Zotero 客户端目录树中选择目标集合。
+          <br>
+          <strong>翻译流程：</strong>扫描选中集合 → 检测未翻译论文 → 自动翻译中文标题 → 写回 Zotero <code>shortTitle</code>
+          <br>
+          <strong>下载流程：</strong>扫描选中集合 → 按分级过滤 → 提取 DOI/arXiv ID → Sci-Hub/arXiv 下载 PDF → 附件写回 Zotero
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>&#9654; 独立翻译运行</h3>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">扫描 Zotero 文献库，自动翻译未设置中文标题的论文。支持独立运行，不依赖完整管线。</p>
+        <div class="form-row" style="margin-bottom:12px;align-items:center;flex-wrap:wrap">
+          <label class="form-label" style="min-width:90px;font-size:13px;color:var(--text-dim)">目标目录</label>
+          <span id="translate-collection-label" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-size:13px;color:var(--text);min-width:180px;display:inline-block">最新批次（自动）</span>
+          <input type="hidden" id="translate-collection-key" value="">
+          <button class="btn btn-outline btn-sm" style="margin-left:8px;padding:5px 10px;font-size:12px" onclick="openCollectionBrowser('translate')">&#128269; 浏览 Zotero 目录</button>
+          <label class="form-label" style="min-width:50px;margin-left:16px;font-size:13px;color:var(--text-dim)">上限</label>
+          <input type="number" id="translate-limit" value="0" min="0" placeholder="0=不限" style="width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div class="form-row" style="margin-bottom:12px;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="translate-dryrun"> 仅扫描（预览模式，不写入 Zotero）
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="translate-retry"> 重试上次失败的条目
+          </label>
+        </div>
+        <div class="form-row" style="gap:8px">
+          <button class="btn btn-primary" onclick="runStandaloneTranslation()">&#9654; 开始翻译</button>
+          <button class="btn btn-outline" onclick="runStandaloneTranslationDryRun()">&#128065; 预览扫描</button>
+          <span id="translate-status" style="margin-left:12px;font-size:0.9em;color:var(--text-dim)"></span>
+        </div>
+        <div id="translate-progress" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:4px">
+            <span id="translate-progress-text">准备中...</span>
+            <span id="translate-progress-pct">0%</span>
+          </div>
+          <div style="width:100%;height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+            <div id="translate-progress-bar" style="width:0%;height:100%;background:linear-gradient(90deg,var(--accent),#6c5ce7);border-radius:3px;transition:width 0.4s ease"></div>
+          </div>
+        </div>
+      </div>
+      <div id="translate-report" style="display:none;margin-top:8px">
+        <h3>运行报告</h3>
+        <div class="pipeline-output" id="translate-report-content"></div>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h3>&#128196; PDF 下载运行</h3>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">扫描 Zotero 中指定等级的文献（A/B/C/D），通过 DOI 自动下载 PDF（Sci-Hub / arXiv），并尝试同步附件回 Zotero。</p>
+        <div class="form-row" style="margin-bottom:12px;flex-wrap:wrap">
+          <label class="form-label" style="min-width:90px">目标目录</label>
+          <span id="download-collection-label" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-size:13px;color:var(--text);min-width:180px;display:inline-block">最新批次（自动）</span>
+          <input type="hidden" id="download-collection-key" value="">
+          <button class="btn btn-outline btn-sm" style="margin-left:8px;padding:5px 10px;font-size:12px" onclick="openCollectionBrowser('download')">&#128269; 浏览 Zotero 目录</button>
+          <label class="form-label" style="min-width:60px;margin-left:16px;font-size:13px;color:var(--text-dim)">分级</label>
+          <select id="download-grade" style="padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+            <option value="A">A (核心相关)</option>
+            <option value="A,B">A+B (核心+主题)</option>
+            <option value="A,B,C">A+B+C (核心+主题+背景)</option>
+          </select>
+          <label class="form-label" style="min-width:50px;margin-left:12px;font-size:13px;color:var(--text-dim)">上限</label>
+          <input type="number" id="download-limit" value="0" min="0" placeholder="0=不限" style="width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+          <label class="form-label" style="min-width:60px;margin-left:12px;font-size:13px;color:var(--text-dim)">Sci-Hub</label>
+          <input type="text" id="download-scihub" value="https://sci-hub.st" placeholder="sci-hub 地址" style="flex:1;min-width:120px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div class="form-row" style="margin-bottom:12px;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="download-dryrun"> 仅扫描（预览模式，不下载）
+          </label>
+        </div>
+        <div class="form-row" style="gap:8px">
+          <button class="btn btn-primary" onclick="runPaperDownload()">&#9654; 开始下载</button>
+          <button class="btn btn-outline" onclick="runPaperDownloadDryRun()">&#128065; 预览扫描</button>
+          <span id="download-status" style="margin-left:12px;font-size:0.9em;color:var(--text-dim)"></span>
+        </div>
+        <div id="download-progress" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:4px">
+            <span id="download-progress-text">准备中...</span>
+            <span id="download-progress-pct">0%</span>
+          </div>
+          <div style="width:100%;height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+            <div id="download-progress-bar" style="width:0%;height:100%;background:linear-gradient(90deg,var(--accent),#e17055);border-radius:3px;transition:width 0.4s ease"></div>
+          </div>
+        </div>
+      </div>
+      <div id="download-report" style="display:none;margin-top:8px">
+        <h3>运行报告</h3>
+        <div class="pipeline-output" id="download-report-content"></div>
+      </div>
+
       <div class="card" id="pipelineOutputCard" style="display:none">
         <h3>运行输出</h3>
         <div class="pipeline-output" id="pipelineOutput"></div>
@@ -469,12 +699,34 @@ main { flex: 1; padding: 24px 32px; overflow-y: auto; }
   </main>
 </div>
 
+<!-- 集合浏览器 Modal -->
+<div id="collectionModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)" onclick="if(event.target===this)closeCollectionBrowser()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;min-width:500px;max-width:600px;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
+    <h3 id="collectionModalTitle" style="margin-bottom:8px;color:var(--accent);font-size:16px;font-weight:600">选择 Zotero 目录</h3>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px">从 Zotero 客户端中选择一个目标集合。选中后翻译/下载将在此目录下搜索论文。</p>
+    <div id="collectionModalSearch" style="margin-bottom:12px">
+      <input type="text" id="collectionModalFilter" placeholder="搜索目录名称..." oninput="filterCollectionTree()" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+    </div>
+    <div id="collectionModalRecent" style="margin-bottom:12px">
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">最近批次目录：</div>
+      <div id="collectionModalRecentList" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div id="collectionModalTree" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;background:var(--bg)">
+      <div style="text-align:center;color:var(--text-dim);padding:20px;font-size:13px">加载中...</div>
+    </div>
+    <div class="actions" style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeCollectionBrowser()">取消</button>
+      <button class="btn btn-primary" onclick="confirmCollectionSelection()" id="collectionModalConfirmBtn" disabled>&#10003; 选择当前目录</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal 对话框 -->
-<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this)closeModal()">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;min-width:400px;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
-    <h3 id="modalTitle" style="margin-bottom:16px;color:var(--accent)"></h3>
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)" onclick="if(event.target===this)closeModal()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;min-width:380px;max-width:480px;box-shadow:var(--shadow-lg)">
+    <h3 id="modalTitle" style="margin-bottom:16px;color:var(--accent);font-size:16px;font-weight:600"></h3>
     <div id="modalBody"></div>
-    <div class="actions" style="margin-top:20px" id="modalActions"></div>
+    <div class="actions" style="margin-top:16px" id="modalActions"></div>
   </div>
 </div>
 
@@ -507,213 +759,162 @@ function switchTheme(theme) {
   localStorage.setItem(THEME_KEY, theme);
 }
 
-// -- 交互动画角色（引用自 animatedlogin 源码） --
+// -- 交互动画角色（引用自 chracters.html 优化后版本） --
 (function initCharacters() {
   const scene = document.getElementById("nav-characters");
   if (!scene) return;
 
-  const purpleEyes = document.getElementById("purple-eyes");
-  const purplePupilL = document.getElementById("purple-pupil-l");
-  const purplePupilR = document.getElementById("purple-pupil-r");
-  const purpleEyeL = document.getElementById("purple-eye-l");
-  const purpleEyeR = document.getElementById("purple-eye-r");
+  // 如果 __characters 尚未初始化（chracters.html 的代码未加载），
+  // 这里提供一个轻量后备，仅保留鼠标追踪和眨眼
+  if (!window.__characters) {
+    const purpleEyes = document.getElementById("purple-eyes");
+    const purplePupilL = document.getElementById("purple-pupil-l");
+    const purplePupilR = document.getElementById("purple-pupil-r");
+    const purpleEyeL = document.getElementById("purple-eye-l");
+    const purpleEyeR = document.getElementById("purple-eye-r");
+    const blackEyes = document.getElementById("black-eyes");
+    const blackPupilL = document.getElementById("black-pupil-l");
+    const blackPupilR = document.getElementById("black-pupil-r");
+    const blackEyeL = document.getElementById("black-eye-l");
+    const blackEyeR = document.getElementById("black-eye-r");
+    const orangeEyes = document.getElementById("orange-eyes");
+    const orangePupilL = document.getElementById("orange-pupil-l");
+    const orangePupilR = document.getElementById("orange-pupil-r");
+    const orangeMouth = document.getElementById("orange-mouth");
+    const yellowEyes = document.getElementById("yellow-eyes");
+    const yellowPupilL = document.getElementById("yellow-pupil-l");
+    const yellowPupilR = document.getElementById("yellow-pupil-r");
+    const yellowMouth = document.getElementById("yellow-mouth");
+    const purple = document.getElementById("char-purple");
+    const black = document.getElementById("char-black");
+    const orange = document.getElementById("char-orange");
+    const yellow = document.getElementById("char-yellow");
 
-  const blackEyes = document.getElementById("black-eyes");
-  const blackPupilL = document.getElementById("black-pupil-l");
-  const blackPupilR = document.getElementById("black-pupil-r");
-  const blackEyeL = document.getElementById("black-eye-l");
-  const blackEyeR = document.getElementById("black-eye-r");
+    let mouseX = 0, mouseY = 0;
+    let isPurpleBlinking = false, isBlackBlinking = false;
 
-  const orangeEyes = document.getElementById("orange-eyes");
-  const orangePupilL = document.getElementById("orange-pupil-l");
-  const orangePupilR = document.getElementById("orange-pupil-r");
-  const orangeMouth = document.getElementById("orange-mouth");
-
-  const yellowEyes = document.getElementById("yellow-eyes");
-  const yellowPupilL = document.getElementById("yellow-pupil-l");
-  const yellowPupilR = document.getElementById("yellow-pupil-r");
-  const yellowMouth = document.getElementById("yellow-mouth");
-
-  const purple = document.getElementById("char-purple");
-  const black = document.getElementById("char-black");
-  const orange = document.getElementById("char-orange");
-  const yellow = document.getElementById("char-yellow");
-
-  let mouseX = 0, mouseY = 0;
-  let isPurpleBlinking = false, isBlackBlinking = false;
-
-  function calcPupilOffset(pupilEl, pupilRadius) {
-    const rect = pupilEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = mouseX - cx;
-    const dy = mouseY - cy;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const maxDist = Math.min(rect.width, rect.height) * 1.5 + 30;
-    const limit = Math.min(dist, maxDist);
-    const angle = Math.atan2(dy, dx);
-    const maxOffset = 6;
-    const offset = Math.min(limit / maxDist, 1) * maxOffset;
-    return { x: Math.cos(angle) * offset, y: Math.sin(angle) * offset };
-  }
-
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  function updateCharacters() {
-    const rect = scene.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = mouseX - centerX;
-    const dy = mouseY - centerY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const normX = Math.max(-1, Math.min(1, dx / (rect.width * 0.8)));
-    const normY = Math.max(-1, Math.min(1, dy / (rect.height * 0.5)));
-
-    // Face positions
-    const purplePos = {
-      faceX: normX * 6,
-      faceY: normY * 3,
-      bodySkew: normX * 4,
-    };
-    const blackPos = {
-      faceX: normX * 5,
-      faceY: normY * 2.5,
-      bodySkew: normX * 3.5,
-    };
-    const orangePos = {
-      faceX: normX * 4,
-      faceY: normY * 3,
-      bodySkew: normX * 3,
-    };
-    const yellowPos = {
-      faceX: normX * 5,
-      faceY: normY * 2,
-      bodySkew: normX * 3.5,
-    };
-
-    // ---- Purple body ----
-    purple.style.transform = `skewX(${purplePos.bodySkew}deg)`;
-
-    // Purple eyes
-    purpleEyes.style.left = 45 + purplePos.faceX + "px";
-    purpleEyes.style.top = 40 + purplePos.faceY + "px";
-    const po = calcPupilOffset(purplePupilL, 7);
-    purplePupilL.style.transform = `translate(${po.x}px, ${po.y}px)`;
-    purplePupilR.style.transform = `translate(${po.x}px, ${po.y}px)`;
-
-    // Purple blink
-    purpleEyeL.style.height = isPurpleBlinking ? "2px" : "18px";
-    purpleEyeR.style.height = isPurpleBlinking ? "2px" : "18px";
-
-    // ---- Black body ----
-    black.style.transform = `skewX(${blackPos.bodySkew}deg)`;
-
-    // Black eyes
-    blackEyes.style.left = 26 + blackPos.faceX + "px";
-    blackEyes.style.top = 32 + blackPos.faceY + "px";
-    const bo = calcPupilOffset(blackPupilL, 6);
-    blackPupilL.style.transform = `translate(${bo.x}px, ${bo.y}px)`;
-    blackPupilR.style.transform = `translate(${bo.x}px, ${bo.y}px)`;
-
-    // Black blink
-    blackEyeL.style.height = isBlackBlinking ? "2px" : "16px";
-    blackEyeR.style.height = isBlackBlinking ? "2px" : "16px";
-
-    // ---- Orange body ----
-    orange.style.transform = `skewX(${orangePos.bodySkew}deg)`;
-
-    // Orange eyes
-    orangeEyes.style.left = 82 + orangePos.faceX + "px";
-    orangeEyes.style.top = 90 + orangePos.faceY + "px";
-    const oo = calcPupilOffset(orangePupilL, 6);
-    orangePupilL.style.transform = `translate(${oo.x}px, ${oo.y}px)`;
-    orangePupilR.style.transform = `translate(${oo.x}px, ${oo.y}px)`;
-
-    // ---- Yellow body ----
-    yellow.style.transform = `skewX(${yellowPos.bodySkew}deg)`;
-
-    // Yellow eyes & mouth
-    yellowEyes.style.left = 52 + yellowPos.faceX + "px";
-    yellowEyes.style.top = 40 + yellowPos.faceY + "px";
-    const yo = calcPupilOffset(yellowPupilL, 6);
-    yellowPupilL.style.transform = `translate(${yo.x}px, ${yo.y}px)`;
-    yellowPupilR.style.transform = `translate(${yo.x}px, ${yo.y}px)`;
-    yellowMouth.style.left = 40 + yellowPos.faceX + "px";
-    yellowMouth.style.top = 88 + yellowPos.faceY + "px";
-    yellowMouth.style.transform = "rotate(0deg)";
-
-    requestAnimationFrame(updateCharacters);
-  }
-
-  requestAnimationFrame(updateCharacters);
-
-  // Blink
-  setInterval(() => {
-    isPurpleBlinking = true;
-    setTimeout(() => { isPurpleBlinking = false; }, 150);
-  }, 3000 + Math.random() * 4000);
-
-  setInterval(() => {
-    isBlackBlinking = true;
-    setTimeout(() => { isBlackBlinking = false; }, 150);
-  }, 3500 + Math.random() * 5000);
-
-  // Error / shake animation
-  const shakeIds = ["purple-eyes", "black-eyes", "orange-eyes", "yellow-eyes", "yellow-mouth", "orange-mouth"];
-  let errorRecoverTimer = null;
-
-  function triggerLoginError() {
-    if (errorRecoverTimer) {
-      clearTimeout(errorRecoverTimer);
-      errorRecoverTimer = null;
+    function calcPupilOffset(pupilEl) {
+      const rect = pupilEl.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = mouseX - cx;
+      const dy = mouseY - cy;
+      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 60);
+      const angle = Math.atan2(dy, dx);
+      const offset = Math.min(dist / 60, 1) * 6;
+      return { x: Math.cos(angle) * offset, y: Math.sin(angle) * offset };
     }
-    const shakeEls = shakeIds.map((id) => document.getElementById(id));
-    shakeEls.forEach((el) => el.classList.remove("shake-head"));
-    void document.body.offsetHeight;
-    orangeMouth.classList.add("visible");
-    setTimeout(() => {
-      shakeEls.forEach((el) => el.classList.add("shake-head"));
-    }, 350);
-    errorRecoverTimer = setTimeout(() => {
-      orangeMouth.classList.remove("visible");
-      shakeEls.forEach((el) => el.classList.remove("shake-head"));
-      errorRecoverTimer = null;
-    }, 2500);
-  }
 
-  function doWave() {
-    const bodies = [purple, black, orange, yellow];
-    bodies.forEach((b) => {
-      b.style.transition = "all 0.3s ease-in-out";
-      b.style.transform = "translateY(-8px)";
+    document.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
     });
-    setTimeout(() => {
-      bodies.forEach((b) => {
-        b.style.transform = "translateY(0px)";
-        setTimeout(() => { b.style.transition = "all 0.7s ease-in-out"; }, 300);
-      });
-    }, 400);
+
+    function updateCharacters() {
+      const rect = scene.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 3;
+      const dx = mouseX - cx;
+      const dy = mouseY - cy;
+      const normX = Math.max(-1, Math.min(1, dx / (rect.width * 0.8)));
+      const normY = Math.max(-1, Math.min(1, dy / (rect.height * 0.5)));
+
+      const purplePos = { faceX: normX * 6, faceY: normY * 3, bodySkew: normX * 4 };
+      const blackPos = { faceX: normX * 5, faceY: normY * 2.5, bodySkew: normX * 3.5 };
+      const orangePos = { faceX: normX * 4, faceY: normY * 3, bodySkew: normX * 3 };
+      const yellowPos = { faceX: normX * 5, faceY: normY * 2, bodySkew: normX * 3.5 };
+
+      purple.style.transform = `skewX(${purplePos.bodySkew}deg)`;
+      purpleEyes.style.left = 45 + purplePos.faceX + "px";
+      purpleEyes.style.top = 40 + purplePos.faceY + "px";
+      const po = calcPupilOffset(purplePupilL);
+      purplePupilL.style.transform = `translate(${po.x}px,${po.y}px)`;
+      purplePupilR.style.transform = `translate(${po.x}px,${po.y}px)`;
+      purpleEyeL.style.height = isPurpleBlinking ? "2px" : "18px";
+      purpleEyeR.style.height = isPurpleBlinking ? "2px" : "18px";
+
+      black.style.transform = `skewX(${blackPos.bodySkew}deg)`;
+      blackEyes.style.left = 26 + blackPos.faceX + "px";
+      blackEyes.style.top = 32 + blackPos.faceY + "px";
+      const bo = calcPupilOffset(blackPupilL);
+      blackPupilL.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+      blackPupilR.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+      blackEyeL.style.height = isBlackBlinking ? "2px" : "16px";
+      blackEyeR.style.height = isBlackBlinking ? "2px" : "16px";
+
+      orange.style.transform = `skewX(${orangePos.bodySkew}deg)`;
+      orangeEyes.style.left = 82 + orangePos.faceX + "px";
+      orangeEyes.style.top = 90 + orangePos.faceY + "px";
+      const oo = calcPupilOffset(orangePupilL);
+      orangePupilL.style.transform = `translate(${oo.x}px,${oo.y}px)`;
+      orangePupilR.style.transform = `translate(${oo.x}px,${oo.y}px)`;
+
+      yellow.style.transform = `skewX(${yellowPos.bodySkew}deg)`;
+      yellowEyes.style.left = 52 + yellowPos.faceX + "px";
+      yellowEyes.style.top = 40 + yellowPos.faceY + "px";
+      const yo = calcPupilOffset(yellowPupilL);
+      yellowPupilL.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+      yellowPupilR.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+      yellowMouth.style.left = 40 + yellowPos.faceX + "px";
+      yellowMouth.style.top = 88 + yellowPos.faceY + "px";
+
+      requestAnimationFrame(updateCharacters);
+    }
+    requestAnimationFrame(updateCharacters);
+
+    setInterval(() => {
+      isPurpleBlinking = true;
+      setTimeout(() => { isPurpleBlinking = false; }, 150);
+    }, 3000 + Math.random() * 4000);
+    setInterval(() => {
+      isBlackBlinking = true;
+      setTimeout(() => { isBlackBlinking = false; }, 150);
+    }, 3500 + Math.random() * 5000);
+
+    window.__characters = {};
+    return;
   }
 
-  window.__characters = {
-    triggerLoginError,
-    doWave,
-  };
-
+  // 补丁：仪表盘加载完成后触发庆祝动画
   const origLoadDashboard = window.loadDashboard;
   if (origLoadDashboard) {
     const patchedLoadDashboard = async function () {
       try {
         await origLoadDashboard.call(this);
-        doWave();
+        if (window.__characters.doSaveSuccess) window.__characters.doSaveSuccess();
       } catch {
-        triggerLoginError();
+        if (window.__characters.doSaveError) window.__characters.doSaveError();
       }
     };
     window.loadDashboard = patchedLoadDashboard;
+  }
+
+  // 补丁：保存按钮成功后触发庆祝动画
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-primary");
+    if (!btn || !btn.textContent.includes("保存")) return;
+    // 等待保存请求完成
+    await new Promise(r => setTimeout(r, 100));
+    // 检测 toast 是否 success
+    const checkToast = setInterval(() => {
+      const toast = document.querySelector(".toast.success");
+      if (toast) {
+        clearInterval(checkToast);
+        if (window.__characters.doSaveSuccess) window.__characters.doSaveSuccess();
+      }
+    }, 200);
+    setTimeout(() => clearInterval(checkToast), 5000);
+  });
+
+  // 补丁：运行失败触发错误动画
+  window.__originalToast = window.toast;
+  if (window.__originalToast) {
+    window.toast = function (msg, type) {
+      window.__originalToast(msg, type);
+      if (type === "error" && window.__characters.doSaveError) {
+        window.__characters.doSaveError();
+      }
+    };
   }
 })();
 
@@ -737,6 +938,7 @@ function loadPageData(page) {
   else if (page === "screening_standards") loadConfig("screening_standards");
   else if (page === "title_translation") loadConfig("title_translation");
   else if (page === "preference_learning") loadConfig("preference_learning");
+  else if (page === "proxy") loadProxyConfig();
   else if (page === "env") loadEnv();
   else if (page === "dashboard") loadDashboard();
 }
@@ -944,25 +1146,25 @@ function renderRecentRuns(runs) {
     return;
   }
   const rows = runs.map((r, i) =>
-    `<tr style="${i === 0 ? 'font-weight:600' : ''}">
+    `<tr${i === 0 ? ' class="latest-row"' : ''}>
       <td>${r.date}</td>
       <td>${r.merged}</td>
-      <td style="color:#3fb950">${r.grade_counts?.A||0}</td>
-      <td style="color:#58a6ff">${r.grade_counts?.B||0}</td>
-      <td style="color:#d29922">${r.grade_counts?.C||0}</td>
-      <td style="color:#8b949e">${r.grade_counts?.D||0}</td>
+      <td style="color:var(--green)">${r.grade_counts?.A||0}</td>
+      <td style="color:var(--accent)">${r.grade_counts?.B||0}</td>
+      <td style="color:var(--orange)">${r.grade_counts?.C||0}</td>
+      <td style="color:var(--text-dim)">${r.grade_counts?.D||0}</td>
       <td>${r.rss_raw||0} / ${r.crossref_raw||0} / ${r.arxiv_raw||0}</td>
     </tr>`
   ).join("");
-  el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
-    <thead><tr style="border-bottom:1px solid var(--border);color:var(--text-dim)">
-      <th style="text-align:left;padding:6px 8px">日期</th>
-      <th style="text-align:right;padding:6px 8px">合并</th>
-      <th style="text-align:right;padding:6px 8px">A</th>
-      <th style="text-align:right;padding:6px 8px">B</th>
-      <th style="text-align:right;padding:6px 8px">C</th>
-      <th style="text-align:right;padding:6px 8px">D</th>
-      <th style="text-align:right;padding:6px 8px">RSS/CR/AR</th>
+  el.innerHTML = `<table class="recent-runs-table">
+    <thead><tr>
+      <th>日期</th>
+      <th>合并</th>
+      <th>A</th>
+      <th>B</th>
+      <th>C</th>
+      <th>D</th>
+      <th>RSS/CR/AR</th>
     </tr></thead>
     <tbody>${rows}</tbody></table>`;
 }
@@ -1417,6 +1619,57 @@ async function loadConfig_pubmed() {
   container.appendChild(form);
 }
 
+// -- 代理设置 --
+async function loadProxyConfig() {
+  const r = await api("GET", "/config/proxy");
+  if (!r.ok) return toast("加载代理配置失败", "error");
+  const cfg = r.data || {};
+  document.getElementById("proxy-enabled").checked = cfg.enabled === true;
+  document.getElementById("proxy-protocol").value = cfg.protocol || "http";
+  document.getElementById("proxy-host").value = cfg.host || "";
+  document.getElementById("proxy-port").value = cfg.port || 10809;
+  document.getElementById("proxy-username").value = cfg.username || "";
+  document.getElementById("proxy-password").value = cfg.password || "";
+  document.getElementById("proxy-no-proxy").value = cfg.no_proxy || "";
+}
+
+async function saveProxyConfig() {
+  const data = {
+    enabled: document.getElementById("proxy-enabled").checked,
+    protocol: document.getElementById("proxy-protocol").value,
+    host: document.getElementById("proxy-host").value.trim(),
+    port: Number(document.getElementById("proxy-port").value) || 10809,
+    username: document.getElementById("proxy-username").value.trim(),
+    password: document.getElementById("proxy-password").value,
+    no_proxy: document.getElementById("proxy-no-proxy").value.trim(),
+  };
+  const r = await api("PUT", "/config/proxy", { data });
+  if (r.ok) {
+    toast("代理配置已保存", "success");
+  } else {
+    toast("保存失败: " + (r.error || ""), "error");
+  }
+}
+
+async function testProxyConnection() {
+  const resultEl = document.getElementById("proxyTestResult");
+  resultEl.innerHTML = "测试中...";
+  try {
+    const r = await api("POST", "/proxy/test");
+    if (r.ok && r.reachable) {
+      resultEl.innerHTML = `<span style="color:var(--green)">&#10003; 连接成功（HTTP ${r.status}）</span>`;
+      toast("代理连接正常", "success");
+    } else if (r.ok) {
+      resultEl.innerHTML = `<span style="color:var(--amber)">&#9888; 返回状态码 ${r.status}，请检查配置</span>`;
+      toast("代理异常", "warning");
+    } else {
+      resultEl.innerHTML = `<span style="color:var(--red)">&#10007; ${r.error}</span>`;
+    }
+  } catch (e) {
+    resultEl.innerHTML = `<span style="color:var(--red)">&#10007; 请求失败: ${e.message}</span>`;
+  }
+}
+
 // -- 环境变量 --
 async function loadEnv() {
   const r = await api("GET", "/env");
@@ -1462,7 +1715,7 @@ function simpleMarkdown(text) {
 
 // -- 管线运行 --
 async function runStage1() {
-  const btn = document.querySelector("#page-pipeline .card:first-child .btn");
+  const btn = document.getElementById("btn-stage1");
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 运行中...';
   document.getElementById("pipelineOutputCard").style.display = "block";
   const out = document.getElementById("pipelineOutput");
@@ -1477,20 +1730,121 @@ async function runStage1() {
   btn.disabled = false; btn.innerHTML = "&#9654; 运行 Stage 1";
 }
 
-async function runFullPipeline() {
-  const btn = document.querySelector("#page-pipeline .card:nth-child(3) .btn");
+async function runCommonPipeline() {
+  const btn = document.getElementById("btn-common");
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 运行中...';
   document.getElementById("pipelineOutputCard").style.display = "block";
   const out = document.getElementById("pipelineOutput");
-  out.textContent = "完整管线运行中，请稍候...\n";
+  out.textContent = "常用管线运行中，请稍候...\n";
   try {
     const r = await api("POST", "/pipeline/run");
-    renderPipelineResult(out, r, "完整管线");
+    renderPipelineResult(out, r, "常用管线");
   } catch (e) {
     out.textContent = `错误: ${e.message}`;
     toast("运行失败", "error");
   }
+  btn.disabled = false; btn.innerHTML = "&#9654; 运行常用管线";
+}
+
+async function runFullCombinedPipeline() {
+  const btn = document.getElementById("btn-full");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 管线运行中...';
+  document.getElementById("pipelineOutputCard").style.display = "block";
+  const out = document.getElementById("pipelineOutput");
+  out.textContent = "完整管线运行中，请稍候...\n";
+
+  const grade = document.getElementById("full-grade").value || "A";
+  const limit = Number(document.getElementById("full-limit").value) || 0;
+
+  let pipelineResult, downloadResult;
+  let pipelineError = null, downloadError = null;
+
+  // Step 1: Run pipeline
+  out.textContent += "\n--- Stage 1-4: 管线运行 ---\n";
+  try {
+    pipelineResult = await api("POST", "/pipeline/run");
+    appendPipelineResult(out, pipelineResult, "管线 (Stage 1-4)");
+  } catch (e) {
+    pipelineError = e;
+    out.textContent += `\n❌ 管线运行失败: ${e.message}\n`;
+    toast("管线运行失败", "error");
+    btn.disabled = false; btn.innerHTML = "&#9654; 运行完整管线";
+    return;
+  }
+
+  // Step 2: PDF download
+  out.textContent += "\n--- PDF 下载 ---\n";
+  btn.innerHTML = '<span class="spinner"></span> 下载中...';
+  try {
+    const body = { dry_run: false, grade, limit, scihub_url: document.getElementById("download-scihub").value.trim() || "https://sci-hub.st" };
+    downloadResult = await api("POST", "/download/papers", body);
+    if (downloadResult.ok && downloadResult.report) {
+      const rep = downloadResult.report;
+      const lines = [`状态: ${rep.status}`, `耗时: ${((rep.duration_ms||0)/1000).toFixed(1)} 秒`];
+      if (rep.candidates) {
+        lines.push(`扫描发现: ${rep.candidates.found} 篇 | 有 DOI: ${rep.candidates.with_doi || 0} | 分级匹配: ${rep.candidates.grade_matched || 0}`);
+      }
+      lines.push(`下载: ${rep.download?.attempted || 0} 次, 成功 ${rep.download?.success || 0}, 失败 ${rep.download?.failed || 0}`);
+      if (rep.attachment) {
+        lines.push(`附件同步: 成功 ${rep.attachment.success || 0}, 失败 ${rep.attachment.failed || 0}`);
+      }
+      if (rep.failures && rep.failures.length > 0) {
+        lines.push(`失败详情 (前 20):`);
+        for (const f of rep.failures.slice(0, 20)) {
+          lines.push(`  [${f.stage}] ${f.doi || f.title.slice(0,50)}: ${f.reason}`);
+        }
+      }
+      out.textContent += lines.join("\n") + "\n";
+    } else {
+      out.textContent += `下载返回异常: ${JSON.stringify(downloadResult).slice(0, 500)}\n`;
+    }
+  } catch (e) {
+    downloadError = e;
+    out.textContent += `\n❌ PDF 下载失败: ${e.message}\n`;
+  }
+
+  const hasError = pipelineError || downloadError;
+  if (hasError) {
+    toast(`完整管线 ${pipelineError ? "管线" : ""}${pipelineError && downloadError ? "+" : ""}${downloadError ? "下载" : ""}失败`, "error");
+  } else {
+    toast("完整管线完成", "success");
+  }
   btn.disabled = false; btn.innerHTML = "&#9654; 运行完整管线";
+}
+
+function appendPipelineResult(out, r, label) {
+  const parts = [];
+  const s = r.summary || {};
+  const hasData = s.counts || s.counters || s.total != null;
+
+  if (r.ok === false && !hasData) {
+    parts.push(`❌ ${label} 失败`);
+    if (r.error) parts.push(`错误: ${r.error}`);
+    if (r.stderr) parts.push(`stderr: ${r.stderr.slice(-500)}`);
+  } else {
+    if (r.ok !== false) parts.push(`✅ ${label} 完成`);
+    else parts.push(`⚠️ ${label} 部分完成（见下方数据）`);
+    if (s.counts) {
+      const c = s.counts;
+      parts.push(`RSS: ${c.rss_raw ?? "?"} | Crossref: ${c.crossref_raw ?? "?"} | arXiv: ${c.arxiv_raw ?? "?"} | Semantic Scholar: ${c.semantic_scholar_raw ?? "?"}`);
+      parts.push(`合并: ${c.merged ?? "?"} 篇 | A: ${c.grade_counts?.A ?? 0} | B: ${c.grade_counts?.B ?? 0} | C: ${c.grade_counts?.C ?? 0} | D: ${c.grade_counts?.D ?? 0}`);
+      if (c.abc_writeback_candidates != null) parts.push(`Zotero 写回候选: ${c.abc_writeback_candidates} 篇`);
+    }
+    if (s.counters) {
+      const c = s.counters;
+      parts.push(`Zotero 写入: ${c.created ?? 0} 篇 | 已有: ${c.reused_existing ?? 0} | 失败: ${c.failed ?? 0}`);
+    }
+    if (s.stages) {
+      parts.push(`阶段状态: ${s.stages.map(st => `${st.name}=${st.status}${st.exitCode != null ? `(${st.exitCode})` : ""}`).join(" | ")}`);
+    }
+    if (s.total != null) parts.push(`翻译: 共 ${s.total} 篇, 成功 ${s.success_count ?? 0}, 失败 ${s.failure_count ?? 0}`);
+    if (s.new_items_in_zotero != null) parts.push(`本次新增到 Zotero: ${s.new_items_in_zotero} 篇`);
+    if (s.pool_duplicates != null) parts.push(`文献池去重（已有）: ${s.pool_duplicates} 篇`);
+    if (s.connector_ok != null) parts.push(`Zotero 连接: ${s.connector_ok ? "正常" : "问题"}`);
+    if (s._raw_lines) parts.push(`(无法解析输出结构，显示末尾 ${s._raw_lines.length} 行)`, ...s._raw_lines);
+    if (s._raw_tail) parts.push(`(无法解析输出)`, s._raw_tail);
+  }
+  out.textContent += "\n" + parts.join("\n");
 }
 
 function renderPipelineResult(out, r, label) {
@@ -1569,6 +1923,318 @@ function renderPipelineResult(out, r, label) {
     out.parentNode.insertBefore(detailDiv, detailLink.nextSibling);
   }
 }
+
+// -- 集合浏览器 --
+let _collectionBrowserMode = "translate";
+let _collectionBrowserFullList = [];
+let _collectionBrowserSelectedKey = null;
+let _collectionBrowserSelectedName = null;
+
+async function openCollectionBrowser(mode) {
+  _collectionBrowserMode = mode;
+  _collectionBrowserSelectedKey = null;
+  _collectionBrowserSelectedName = null;
+  document.getElementById("collectionModalConfirmBtn").disabled = true;
+  document.getElementById("collectionModalOverlay").style.display = "flex";
+  document.getElementById("collectionModalFilter").value = "";
+
+  const treeEl = document.getElementById("collectionModalTree");
+  const recentEl = document.getElementById("collectionModalRecentList");
+  treeEl.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:13px">正在从 Zotero 获取目录列表...</div>`;
+  recentEl.innerHTML = "";
+
+  try {
+    const r = await api("GET", "/collections/tree");
+    if (!r.ok) {
+      treeEl.innerHTML = `<div style="color:var(--red);padding:16px;font-size:13px">获取失败: ${r.error || "未知错误"}</div>`;
+      return;
+    }
+    _collectionBrowserFullList = r.collections || [];
+
+    // Recent date collections
+    const dates = r.dateCollections || [];
+    if (dates.length > 0) {
+      for (const d of dates.slice(0, 6)) {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-outline btn-sm";
+        btn.style.cssText = "padding:4px 10px;font-size:12px";
+        btn.textContent = d.name;
+        btn.onclick = () => {
+          _collectionBrowserSelectedKey = d.key;
+          _collectionBrowserSelectedName = d.name;
+          document.getElementById("collectionModalConfirmBtn").disabled = false;
+          highlightCollectionTree(d.key);
+        };
+        recentEl.appendChild(btn);
+      }
+    } else {
+      recentEl.innerHTML = `<span style="font-size:12px;color:var(--text-dim)">暂无日期批次目录</span>`;
+    }
+
+    renderCollectionTree(r.collections || []);
+  } catch (e) {
+    treeEl.innerHTML = `<div style="color:var(--red);padding:16px;font-size:13px">请求失败: ${e.message}</div>`;
+  }
+}
+
+function closeCollectionBrowser() {
+  document.getElementById("collectionModalOverlay").style.display = "none";
+}
+
+function renderCollectionTree(collections) {
+  const treeEl = document.getElementById("collectionModalTree");
+  const filter = document.getElementById("collectionModalFilter").value.toLowerCase().trim();
+  let filtered = collections;
+  if (filter) {
+    filtered = collections.filter((c) => (c.name || c.label || "").toLowerCase().includes(filter));
+  }
+  if (filtered.length === 0) {
+    treeEl.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:13px">${filter ? "无匹配目录" : "暂无可用目录"}</div>`;
+    return;
+  }
+  const html = filtered.map((c) => {
+    const name = c.name || c.label || "?";
+    const isSelected = c.key === _collectionBrowserSelectedKey;
+    return `<div data-key="${c.key}" data-name="${name}" onclick="selectCollectionTreeItem('${c.key}','${name.replace(/'/g, "\\'")}')" style="padding:6px 10px;cursor:pointer;border-radius:var(--radius-sm);margin-bottom:2px;font-size:13px;background:${isSelected ? 'var(--accent-light, rgba(0,200,150,0.15))' : 'transparent'};border-left:3px solid ${isSelected ? 'var(--accent)' : 'transparent'}">${name}</div>`;
+  }).join("");
+  treeEl.innerHTML = html;
+}
+
+function filterCollectionTree() {
+  renderCollectionTree(_collectionBrowserFullList);
+}
+
+function selectCollectionTreeItem(key, name) {
+  _collectionBrowserSelectedKey = key;
+  _collectionBrowserSelectedName = name;
+  document.getElementById("collectionModalConfirmBtn").disabled = false;
+  highlightCollectionTree(key);
+}
+
+function highlightCollectionTree(selectedKey) {
+  const items = document.querySelectorAll("#collectionModalTree > div");
+  items.forEach((el) => {
+    const key = el.getAttribute("data-key");
+    if (key === selectedKey) {
+      el.style.background = "var(--accent-light, rgba(0,200,150,0.15))";
+      el.style.borderLeftColor = "var(--accent)";
+    } else {
+      el.style.background = "transparent";
+      el.style.borderLeftColor = "transparent";
+    }
+  });
+}
+
+function confirmCollectionSelection() {
+  if (!_collectionBrowserSelectedKey || !_collectionBrowserSelectedName) return;
+  const mode = _collectionBrowserMode;
+  if (mode === "translate") {
+    document.getElementById("translate-collection-key").value = _collectionBrowserSelectedKey;
+    document.getElementById("translate-collection-label").textContent = _collectionBrowserSelectedName;
+  } else {
+    document.getElementById("download-collection-key").value = _collectionBrowserSelectedKey;
+    document.getElementById("download-collection-label").textContent = _collectionBrowserSelectedName;
+  }
+  closeCollectionBrowser();
+  toast(`已选择目录: ${_collectionBrowserSelectedName}`, "success");
+}
+
+function showProgress(type, current, total, pct, text) {
+  const pctEl = document.getElementById(`${type}-progress-pct`);
+  const barEl = document.getElementById(`${type}-progress-bar`);
+  const textEl = document.getElementById(`${type}-progress-text`);
+  const progEl = document.getElementById(`${type}-progress`);
+  if (!progEl) return;
+  progEl.style.display = "block";
+  if (pctEl) pctEl.textContent = `${pct}%`;
+  if (barEl) barEl.style.width = `${pct}%`;
+  if (textEl) textEl.textContent = text || `${current}/${total} (${pct}%)`;
+}
+
+function hideProgress(type) {
+  const el = document.getElementById(`${type}-progress`);
+  if (el) el.style.display = "none";
+}
+
+// Parse PROGRESS_JSON lines from stderr output
+function parseProgressFromStderr(stderr) {
+  if (!stderr) return null;
+  const lines = stderr.split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("[PROGRESS_JSON]")) {
+      try {
+        return JSON.parse(trimmed.slice("[PROGRESS_JSON]".length));
+      } catch { continue; }
+    }
+  }
+  return null;
+}
+
+// -- 独立翻译 --
+async function callTranslate(mode) {
+  const collectionKey = document.getElementById("translate-collection-key").value.trim();
+  const limit = Number(document.getElementById("translate-limit").value) || 0;
+  const retry = document.getElementById("translate-retry").checked;
+  const dryRun = document.getElementById("translate-dryrun").checked || mode === "dryrun";
+  const statusEl = document.getElementById("translate-status");
+  const reportEl = document.getElementById("translate-report");
+  const contentEl = document.getElementById("translate-report-content");
+
+  hideProgress("translate");
+  statusEl.textContent = dryRun ? "预览扫描中..." : "翻译运行中...";
+  reportEl.style.display = "none";
+
+  const body = { limit, retry_failures: retry, dry_run: dryRun };
+  if (collectionKey) {
+    body.collectionKey = collectionKey;
+  } else {
+    body.collection = "";
+  }
+
+  try {
+    const r = await api("POST", "/translate/standalone", body);
+    const stderr = r._stderr || "";
+    const pg = parseProgressFromStderr(stderr);
+    if (pg) {
+      showProgress("translate", pg.current, pg.total, pg.pct, `翻译中: ${pg.title || ""}`);
+    }
+
+    statusEl.textContent = "";
+    reportEl.style.display = "block";
+    if (r.ok && r.report) {
+      const rep = r.report;
+      const lines = [];
+      lines.push(`状态: ${rep.status}`);
+      lines.push(`耗时: ${(rep.duration_ms / 1000).toFixed(1)} 秒`);
+      lines.push(`---`);
+      if (rep.scan) {
+        lines.push(`扫描发现: ${rep.scan.candidates_found} 篇待翻译`);
+      }
+      lines.push(`翻译尝试: ${rep.translation?.attempted || 0}`);
+      lines.push(`翻译成功: ${rep.translation?.success || 0}`);
+      lines.push(`翻译失败: ${(rep.translation?.api_failed || 0) + (rep.translation?.quality_failed || 0)}`);
+      if (rep.writeback) {
+        lines.push(`---`);
+        lines.push(`Zotero 写入: ${rep.writeback.success || 0}`);
+        lines.push(`写入失败: ${rep.writeback.failed || 0}`);
+      }
+      if (rep.failures && rep.failures.length > 0) {
+        lines.push(`---`);
+        lines.push(`失败详情 (前 20 条):`);
+        for (const f of rep.failures.slice(0, 20)) {
+          lines.push(`  [${f.stage}] ${f.itemKey}: ${f.reason}`);
+        }
+      }
+      if (rep.dry_run_candidates && rep.dry_run_candidates.length > 0) {
+        lines.push(`---`);
+        lines.push(`预览: 待翻译条目 (前 30 条):`);
+        for (const c of rep.dry_run_candidates.slice(0, 30)) {
+          lines.push(`  ${c.itemKey} | [${c.sourceLang}] ${c.title.slice(0, 80)}`);
+        }
+      }
+      lines.push(`\n(完整 JSON 报告见 research_os/pipeline/standalone_translation_report.json)`);
+      contentEl.textContent = lines.join("\n");
+
+      if (rep.translation && rep.translation.total > 0) {
+        showProgress("translate", rep.translation.success + (rep.translation.api_failed || 0) + (rep.translation.quality_failed || 0), rep.translation.total, Math.round((rep.translation.success) / rep.translation.total * 100), "完成");
+      }
+    } else {
+      contentEl.textContent = JSON.stringify(r, null, 2);
+    }
+    toast(`翻译${dryRun ? "预览" : "任务"}完成`, r.ok ? "success" : "info");
+  } catch (e) {
+    statusEl.textContent = "错误";
+    reportEl.style.display = "block";
+    contentEl.textContent = `请求失败: ${e.message}`;
+    toast("请求失败", "error");
+  }
+}
+
+function runStandaloneTranslation() { callTranslate("run"); }
+function runStandaloneTranslationDryRun() { callTranslate("dryrun"); }
+
+// -- PDF 下载 --
+async function callPaperDownload(mode) {
+  const collectionKey = document.getElementById("download-collection-key").value.trim();
+  const grade = document.getElementById("download-grade").value || "A";
+  const limit = Number(document.getElementById("download-limit").value) || 0;
+  const sciHubUrl = document.getElementById("download-scihub").value.trim() || "https://sci-hub.st";
+  const dryRun = document.getElementById("download-dryrun").checked || mode === "dryrun";
+  const statusEl = document.getElementById("download-status");
+  const reportEl = document.getElementById("download-report");
+  const contentEl = document.getElementById("download-report-content");
+
+  hideProgress("download");
+  statusEl.textContent = dryRun ? "扫描中..." : "下载中...";
+  reportEl.style.display = "none";
+
+  const body = { dry_run: dryRun, grade, limit, scihub_url: sciHubUrl };
+  if (collectionKey) body.collectionKey = collectionKey;
+
+  try {
+    const r = await api("POST", "/download/papers", body);
+    const stderr = r._stderr || "";
+    const pg = parseProgressFromStderr(stderr);
+    if (pg) {
+      showProgress("download", pg.current, pg.total, pg.pct, `下载中: ${pg.title || pg.doi || ""}`);
+    }
+
+    statusEl.textContent = "";
+    reportEl.style.display = "block";
+    if (r.ok && r.report) {
+      const rep = r.report;
+      const lines = [];
+      lines.push(`状态: ${rep.status}`);
+      lines.push(`耗时: ${((rep.duration_ms||0)/1000).toFixed(1)} 秒`);
+      lines.push(`---`);
+      if (rep.candidates) {
+        lines.push(`扫描发现: ${rep.candidates.found} 篇`);
+        lines.push(`  - 有 DOI: ${rep.candidates.with_doi || 0}`);
+        lines.push(`  - 分级匹配: ${rep.candidates.grade_matched || 0}`);
+      }
+      lines.push(`下载尝试: ${rep.download?.attempted || 0}`);
+      lines.push(`下载成功: ${rep.download?.success || 0}`);
+      lines.push(`下载失败: ${rep.download?.failed || 0}`);
+      if (rep.attachment) {
+        lines.push(`---`);
+        lines.push(`附件同步: ${rep.attachment.success || 0}`);
+        lines.push(`同步失败: ${rep.attachment.failed || 0}`);
+      }
+      if (rep.failures && rep.failures.length > 0) {
+        lines.push(`---`);
+        lines.push(`失败详情 (前 20):`);
+        for (const f of rep.failures.slice(0, 20)) {
+          lines.push(`  [${f.stage}] ${f.doi || f.title.slice(0,50)}: ${f.reason}`);
+        }
+      }
+      if (rep.dry_run_candidates && rep.dry_run_candidates.length > 0) {
+        lines.push(`---`);
+        lines.push(`预览: 待下载条目 (前 30 条):`);
+        for (const c of rep.dry_run_candidates.slice(0, 30)) {
+          lines.push(`  ${c.doi || "N/A"} | [${c.grade}] ${c.title.slice(0, 60)}`);
+        }
+      }
+      lines.push(`\n(完整 JSON 报告见 research_os/pipeline/pdf_download_report.json)`);
+      contentEl.textContent = lines.join("\n");
+
+      if (rep.download && rep.download.total > 0) {
+        showProgress("download", rep.download.success + rep.download.failed, rep.download.total, Math.round(rep.download.success / rep.download.total * 100), "下载完成");
+      }
+    } else {
+      contentEl.textContent = JSON.stringify(r, null, 2);
+    }
+    toast(`PDF 下载${dryRun ? "预览" : "任务"}完成`, r.ok ? "success" : "info");
+  } catch (e) {
+    statusEl.textContent = "错误";
+    reportEl.style.display = "block";
+    contentEl.textContent = `请求失败: ${e.message}`;
+    toast("请求失败", "error");
+  }
+}
+
+function runPaperDownload() { callPaperDownload("run"); }
+function runPaperDownloadDryRun() { callPaperDownload("dryrun"); }
 
 // -- 页面切换时加载对应数据 --
 const pageLoaders = {

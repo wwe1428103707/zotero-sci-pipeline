@@ -204,7 +204,9 @@ export function detectRunMode(env = process.env, argv = process.argv) {
   const isScheduled = triggerMode === "scheduled" || triggerMode === "background";
   const isManualOrForce = manualTrigger || forceRun;
   const explicitForceRun = parseForceRun(env);
-  return { triggerMode, isScheduled, isManualOrForce, forceRun, explicitForceRun };
+  const translationOnly = (argv || []).includes("--translation-only");
+  const downloadOnly = (argv || []).includes("--download-only");
+  return { triggerMode, isScheduled, isManualOrForce, forceRun, explicitForceRun, translationOnly, downloadOnly };
 }
 
 export async function runZoteroLiteratureFilter({
@@ -224,6 +226,28 @@ export async function runZoteroLiteratureFilter({
   const manualTrigger = runMode.isManualOrForce;
   const stages = [];
   const artifacts = {};
+
+  // --translation-only mode: skip all stages and run standalone translation directly
+  if (runMode.translationOnly) {
+    console.log("[orchestrator] --translation-only 模式: 仅执行独立翻译任务");
+    const { runStandaloneTitleTranslation } = await import("./standalone_title_translation.mjs");
+    const standaloneReport = await runStandaloneTitleTranslation({});
+    stages.push({ name: "standalone_translation", status: "completed", startedAt: iso(clock()), finishedAt: iso(clock()), exitCode: 0 });
+    const report = { automationName: AUTOMATION_NAME, runId, startedAt, finishedAt: iso(clock()), status: "completed", triggerMode, runMode, forceRun: true, explicitForceRun: false, bypassIntervalGate: true, bypassReason: "translation_only_mode", pipelineDir: config.pipelineDir, stages, artifacts, standalone_translation: standaloneReport };
+    await writeReport(report);
+    return report;
+  }
+
+  // --download-only mode: skip all stages and run paper downloader directly
+  if (runMode.downloadOnly) {
+    console.log("[orchestrator] --download-only 模式: 仅执行 PDF 下载任务");
+    const { runPaperDownloader } = await import("./paper_downloader.mjs");
+    const downloadReport = await runPaperDownloader({ usingTriagedItems: true, gradeFilter: "A" });
+    stages.push({ name: "paper_download", status: "completed", startedAt: iso(clock()), finishedAt: iso(clock()), exitCode: 0 });
+    const report = { automationName: AUTOMATION_NAME, runId, startedAt, finishedAt: iso(clock()), status: "completed", triggerMode, runMode, forceRun: true, explicitForceRun: false, bypassIntervalGate: true, bypassReason: "download_only_mode", pipelineDir: config.pipelineDir, stages, artifacts, paper_download: downloadReport };
+    await writeReport(report);
+    return report;
+  }
   const baseStageRunner = runCommand
     ? async (stage) => runCommand(stage, config)
     : runStage;
@@ -336,6 +360,23 @@ export async function runZoteroLiteratureFilter({
     stageDone("Stage 4", "Excel 导出完成");
   } else {
     stageFail("Stage 4", `exit code ${stages.at(-1).exitCode}`);
+  }
+
+  // Stage5: PDF 下载 (仅在完整管线中作为可选环节)
+  if (!runMode.downloadOnly) {
+    const stageDef5 = makeStage("stage5_pdf_download", `${config.repoRoot}/tools/paper_downloader.mjs`,
+      async () => {
+        const { runPaperDownloader } = await import("./paper_downloader.mjs");
+        const rep = await runPaperDownloader({ usingTriagedItems: true, gradeFilter: "A" });
+        return { exitCode: rep.status === "completed" || rep.status === "completed_with_failures" ? 0 : 1, stdout: "", stderr: JSON.stringify(rep) };
+      });
+    stageHeader("Stage 5: PDF 下载");
+    stages.push(await executeStage(stageDef5, runSameProcessStage, clock));
+    if (stages.at(-1).exitCode === 0) {
+      stageDone("Stage 5", "PDF 下载完成");
+    } else {
+      stageFail("Stage 5", `exit code ${stages.at(-1).exitCode}`);
+    }
   }
   const explicitForceRun = runMode.explicitForceRun; const bypassIntervalGate = Boolean(manualTrigger || explicitForceRun); const bypassReason = explicitForceRun ? EXPLICIT_FORCE_BYPASS_REASON : manualTrigger ? MANUAL_BYPASS_REASON : null; const report = { automationName: AUTOMATION_NAME, runId, startedAt, finishedAt: iso(clock()), status, triggerMode, runMode, forceRun: manualTrigger || explicitForceRun, explicitForceRun, bypassIntervalGate, bypassReason, pipelineDir: config.pipelineDir, stages, artifacts };
   await writeReport(report);

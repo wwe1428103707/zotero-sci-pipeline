@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { proxyFetch } from "./proxy_config.mjs";
 
 function loadEnv(root) {
   const envPath = path.join(root, ".env");
@@ -76,7 +77,7 @@ async function sendWecomBot(webhookUrl, message) {
     msgtype: "markdown",
     markdown: { content: truncate(message, 4096) },
   };
-  const res = await fetch(webhookUrl, {
+  const res = await proxyFetch(webhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -92,7 +93,7 @@ async function sendPushDeer(pushDeerKey, message) {
     .replace(/---/g, "")
     .split("\n").filter(Boolean).slice(0, 20).join("\n");
   const url = `https://api2.pushdeer.com/message/push?pushkey=${encodeURIComponent(pushDeerKey)}&text=${encodeURIComponent(truncate(text, 2000))}`;
-  const res = await fetch(url);
+  const res = await proxyFetch(url);
   if (!res.ok) throw new Error(`pushdeer_${res.status}`);
   return { ok: true, channel: "pushdeer" };
 }
@@ -100,7 +101,7 @@ async function sendPushDeer(pushDeerKey, message) {
 async function sendServerChan(serverChanKey, message) {
   const title = message.split("\n")[0] || "zotero-sci-pipeline 运行报告";
   const body = { title: truncate(title, 80), desp: message };
-  const res = await fetch(`https://sctapi.ftqq.com/${serverChanKey}.send`, {
+  const res = await proxyFetch(`https://sctapi.ftqq.com/${serverChanKey}.send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

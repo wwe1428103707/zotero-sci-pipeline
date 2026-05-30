@@ -3,11 +3,32 @@ import path from "node:path";
 import http from "node:http";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
+import { clearProxyCache, getProxyConfig, shouldProxy, proxyFetch } from "./lib/proxy_config.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CONFIG_DIR = path.join(ROOT, "config");
 const ENV_PATH = path.join(ROOT, ".env");
 const RESEARCH_OS = path.join(ROOT, "research_os");
+
+// Load .env into process.env so downstream modules (e.g. title_translation_support.mjs)
+// can read TITLE_TRANSLATION_API_KEY / TITLE_TRANSLATION_MODEL / etc. at runtime.
+try {
+  if (fs.existsSync(ENV_PATH)) {
+    const envText = fs.readFileSync(ENV_PATH, "utf8");
+    for (const line of envText.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx < 0) continue;
+      const key = trimmed.slice(0, eqIdx).trim();
+      const val = trimmed.slice(eqIdx + 1).trim();
+      if (key && !process.env[key]) {
+        process.env[key] = val;
+      }
+    }
+  }
+} catch { /* .env loading is best-effort */ }
+
 const PORT = Number(process.env.CONFIG_PORT || 3456);
 
 const MIME = {
@@ -31,6 +52,7 @@ const CONFIG_FILES = {
   screening_standards: { title: "筛选标准", path: path.join(ROOT, "screening_standards.md"), type: "markdown" },
   crossref_search: { title: "Crossref 检索", path: path.join(CONFIG_DIR, "crossref_search.json"), type: "json" },
   cnki_import: { title: "知网导入配置", path: path.join(CONFIG_DIR, "cnki_import.json"), type: "json_cnki" },
+  proxy: { title: "代理设置", path: path.join(CONFIG_DIR, "proxy.config.json"), type: "json" },
 };
 
 function readJsonSafe(p) {
@@ -126,6 +148,45 @@ async function handleApi(req, res, parts) {
       const info = CONFIG_FILES[parts[1]];
       if (method === "GET") {
         if (info.type === "json" || info.type === "json_cnki") {
+          // For title_translation, merge .env overrides into the file config for display,
+          // so the UI shows what is actually used at runtime, not the raw file placeholder.
+          if (parts[1] === "title_translation") {
+            const r = readJsonSafe(info.path);
+            if (!r.ok) return sendJson(res, { ok: false, error: r.error });
+            const merged = { ...r.data };
+            const overrideKeys = {
+              TITLE_TRANSLATION_MODEL: "model",
+              TITLE_TRANSLATION_ENDPOINT: "endpoint",
+              TITLE_TRANSLATION_TEMPERATURE: ["temperature", Number],
+              TITLE_TRANSLATION_TOP_P: ["top_p", Number],
+              TITLE_TRANSLATION_BATCH_SIZE: ["batch_size", Number],
+              TITLE_TRANSLATION_TIMEOUT_MS: ["timeout_ms", Number],
+              TITLE_TRANSLATION_MAX_RETRIES: ["max_retries", Number],
+              TITLE_TRANSLATION_STREAM: ["stream", (v) => v === "true" || v === "1"],
+              TITLE_TRANSLATION_THINKING: ["thinking", (v) => v === "true" || v === "1"],
+              TITLE_TRANSLATION_FALLBACK_TO_ENGLISH: ["fallback_to_english", (v) => v === "true" || v === "1"],
+            };
+            const appliedOverrides = {};
+            for (const [envKey, cfgKey] of Object.entries(overrideKeys)) {
+              const envVal = process.env[envKey];
+              if (envVal !== undefined && envVal !== null && envVal !== "") {
+                if (Array.isArray(cfgKey)) {
+                  merged[cfgKey[0]] = cfgKey[1](envVal);
+                } else {
+                  merged[cfgKey] = envVal;
+                }
+                appliedOverrides[cfgKey] = envVal;
+              }
+            }
+            return sendJson(res, {
+              ok: true,
+              data: merged,
+              path: info.path,
+              title: info.title,
+              type: info.type,
+              env_overrides: appliedOverrides,
+            });
+          }
           const r = readJsonSafe(info.path);
           return sendJson(res, r.ok ? { ok: true, data: r.data, path: info.path, title: info.title, type: info.type } : { ok: false, error: r.error });
         }
@@ -147,6 +208,7 @@ async function handleApi(req, res, parts) {
           }
           await fs.promises.mkdir(path.dirname(info.path), { recursive: true });
           await fs.promises.writeFile(info.path, content, "utf8");
+          if (parts[1] === "proxy") clearProxyCache();
           return sendJson(res, { ok: true, path: info.path });
         } catch (e) {
           return sendError(res, 400, `写入失败: ${e.message}`);
@@ -154,6 +216,53 @@ async function handleApi(req, res, parts) {
       }
     }
     return sendError(res, 404, "未知配置项");
+  }
+
+  if (parts[0] === "proxy" && parts[1] === "test") {
+    if (method === "POST") {
+      const config = getProxyConfig();
+      if (!config.enabled) return sendJson(res, { ok: false, error: "代理未启用" });
+      const testUrl = "https://www.google.com/generate_204";
+      const timeoutMs = 10000;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const resp = await proxyFetch(testUrl, { method: "HEAD", signal: controller.signal });
+        const status = resp.status;
+        clearTimeout(timer);
+        return sendJson(res, { ok: true, status, reachable: status < 500 });
+      } catch (e) {
+        clearTimeout(timer);
+        return sendJson(res, { ok: false, error: `连接测试失败: ${e.message?.slice(0, 100) || e}` });
+      }
+    }
+    return sendError(res, 405, "仅支持 POST");
+  }
+
+  if (parts[0] === "collections" && parts[1] === "tree" && method === "GET") {
+    try {
+      const mcpUrl = process.env.ZOTERO_MCP_URL || process.env.MCP_URL || "http://127.0.0.1:23120/mcp";
+      const mcpPost = async (name, args) => {
+        const body = JSON.stringify({ jsonrpc: "2.0", id: Math.floor(Math.random() * 900000) + 100000, method: "tools/call", params: { name, arguments: args } });
+        const r = await fetch(mcpUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body, signal: AbortSignal.timeout(10000) });
+        const j = await r.json();
+        if (j.error) throw new Error(JSON.stringify(j.error));
+        const raw = j.result?.content?.[0]?.text;
+        return raw ? JSON.parse(raw) : [];
+      };
+      const pool = await mcpPost("get_collections", { mode: "complete", limit: 500 });
+      const allCollections = Array.isArray(pool) ? pool : (pool?.collections || []);
+      const poolCollection = allCollections.find((c) => c.name === "文献池" || c.name === "Literature Pool");
+      if (!poolCollection) return sendJson(res, { ok: true, collections: [], dateCollections: [], error: "pool_collection_not_found" });
+      const poolKey = poolCollection.collectionKey || poolCollection.key;
+      const tree = await mcpPost("get_subcollections", { collectionKey: poolKey, recursive: true });
+      const allNodes = Array.isArray(tree) ? tree : [];
+      const dateCollections = allNodes.filter((n) => /^\d{4}-\d{2}-\d{2}$/.test(n.name)).map((n) => ({ key: n.collectionKey || n.key, name: n.name, label: n.name }));
+      const fullList = [{ key: poolKey, name: "文献池", label: "文献池（全部）" }, ...allNodes.filter((n) => n.collectionKey || n.key).map((n) => ({ key: n.collectionKey || n.key, name: n.name, label: n.name }))];
+      return sendJson(res, { ok: true, collections: fullList, dateCollections: dateCollections.sort((a, b) => b.name.localeCompare(a.name)) });
+    } catch (e) {
+      return sendJson(res, { ok: false, error: `获取集合列表失败: ${e.message?.slice(0, 200)}` });
+    }
   }
 
   if (parts[0] === "env") {
@@ -194,6 +303,84 @@ async function handleApi(req, res, parts) {
     } catch (e) {
       const summary = extractPipelineSummary(e.stdout || "");
       return sendJson(res, { ok: false, error: e.message, summary, stdout_tail: (e.stdout || "").slice(-3000), stderr: (e.stderr || "").slice(-1000) });
+    }
+  }
+
+  if (parts[0] === "translate" && parts[1] === "standalone" && method === "POST") {
+    try {
+      let body = "";
+      for await (const chunk of req) body += chunk;
+      const params = body ? JSON.parse(body) : {};
+      const dryRun = Boolean(params.dry_run || params.dryRun);
+      const limit = Number(params.limit || 0);
+      const retryFailures = Boolean(params.retry_failures || params.retryFailures);
+      const collectionName = String(params.collection || params.collectionName || "文献池");
+      const collectionKey = String(params.collectionKey || params.collection_key || "");
+      const cliArgs = ["node", "tools/standalone_title_translation.mjs"];
+      if (dryRun) cliArgs.push("--dry-run");
+      if (limit > 0) cliArgs.push(`--limit=${limit}`);
+      if (retryFailures) cliArgs.push("--retry-failures");
+      cliArgs.push(`--collection=${collectionName}`);
+      if (collectionKey) cliArgs.push(`--collection-key=${collectionKey}`);
+      const { spawnSync } = await import("node:child_process");
+      const spResult = spawnSync("node", cliArgs.slice(1), { cwd: ROOT, encoding: "utf8", timeout: 600000, maxBuffer: 10 * 1024 * 1024 });
+      const stdout = spResult.stdout || "";
+      const stderr = spResult.stderr || "";
+      let report;
+      try { report = JSON.parse(stdout); } catch {
+        const braceIdx = stdout.indexOf("{");
+        const bracketIdx = stdout.indexOf("[");
+        let jsonStart = -1;
+        if (braceIdx >= 0 && (bracketIdx < 0 || braceIdx < bracketIdx)) jsonStart = braceIdx;
+        else if (bracketIdx >= 0) jsonStart = bracketIdx;
+        if (jsonStart >= 0) {
+          try { report = JSON.parse(stdout.slice(jsonStart)); } catch { report = { _raw: stdout.slice(0, 800) }; }
+        } else {
+          report = { _raw: stdout.slice(0, 800) };
+        }
+      }
+      if (stderr) report._stderr = stderr.slice(-5000);
+      return sendJson(res, { ok: true, report, full_output_preview: stdout.slice(0, 1000) });
+    } catch (e) {
+      let partialReport = {};
+      try { partialReport = JSON.parse(e.stdout || "{}"); } catch {}
+      return sendJson(res, { ok: false, error: e.message, report: partialReport, stdout_tail: (e.stdout || "").slice(-3000), stderr: (e.stderr || "").slice(-1000) });
+    }
+  }
+
+  if (parts[0] === "download" && parts[1] === "papers" && method === "POST") {
+    try {
+      let body = "";
+      for await (const chunk of req) body += chunk;
+      const params = body ? JSON.parse(body) : {};
+      const dryRun = Boolean(params.dry_run || params.dryRun);
+      const limit = Number(params.limit || 0);
+      const gradeFilter = String(params.grade || params.gradeFilter || "A");
+      const sciHubUrl = String(params.scihub_url || params.sciHubUrl || "");
+      const collectionKey = String(params.collectionKey || params.collection_key || "");
+      const cliArgs = ["node", "tools/paper_downloader.mjs"];
+      if (dryRun) cliArgs.push("--dry-run");
+      if (limit > 0) cliArgs.push(`--limit=${limit}`);
+      cliArgs.push(`--grade=${gradeFilter}`);
+      if (sciHubUrl) cliArgs.push(`--scihub=${sciHubUrl}`);
+      if (collectionKey) cliArgs.push(`--collection-key=${collectionKey}`);
+      const { spawnSync } = await import("node:child_process");
+      const spResult = spawnSync("node", cliArgs.slice(1), { cwd: ROOT, encoding: "utf8", timeout: 600000, maxBuffer: 10 * 1024 * 1024 });
+      const stdout = spResult.stdout || "";
+      const stderr = spResult.stderr || "";
+      let report;
+      try { report = JSON.parse(stdout); } catch {
+        const braceIdx = stdout.indexOf("{");
+        if (braceIdx >= 0) {
+          try { report = JSON.parse(stdout.slice(braceIdx)); } catch { report = { _raw: stdout.slice(0, 800) }; }
+        } else { report = { _raw: stdout.slice(0, 800) }; }
+      }
+      if (stderr) report._stderr = stderr.slice(-5000);
+      return sendJson(res, { ok: true, report, full_output_preview: stdout.slice(0, 1000) });
+    } catch (e) {
+      let partialReport = {};
+      try { partialReport = JSON.parse(e.stdout || "{}"); } catch {}
+      return sendJson(res, { ok: false, error: e.message, report: partialReport, stdout_tail: (e.stdout || "").slice(-3000), stderr: (e.stderr || "").slice(-1000) });
     }
   }
 

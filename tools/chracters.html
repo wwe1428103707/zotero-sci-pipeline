@@ -1,396 +1,63 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login</title>
-  <link rel="icon" type="image/png" href="./logo.png"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title>数据仪表盘 · 交互动画角色</title>
   <style>
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family:
-        "Inter",
-        -apple-system,
-        BlinkMacSystemFont,
-        sans-serif;
-      background: #1a1a2e;
-      overflow: hidden;
-      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+      background: #f6f8fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* ============ LOGIN PAGE ============ */
-    #login-page {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      height: 100vh;
-    }
-
-    /* Left Panel */
-    .left-panel {
-      position: relative;
+    /* ============ DEMO 容器 ============ */
+    .demo-container {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      background: linear-gradient(135deg,
-          #d4d0dc 0%,
-          #c8c4d0 50%,
-          #bbb7c5 100%);
-      padding: 40px 48px;
-      overflow: hidden;
-    }
-
-    .left-panel .logo {
-      display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff;
-      z-index: 10;
-      position: relative;
-    }
-
-    .left-panel .logo svg {
-      width: 28px;
-      height: 28px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
-      padding: 4px;
-      border-radius: 6px;
-    }
-
-    .characters-wrapper {
-      position: relative;
-      z-index: 10;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      height: 420px;
-    }
-
-    .left-panel .footer-links {
-      display: flex;
-      gap: 28px;
-      font-size: 13px;
-      color: rgba(80, 70, 90, 0.7);
-      z-index: 10;
-      position: relative;
-    }
-
-    .left-panel .footer-links a {
-      color: inherit;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .left-panel .footer-links a:hover {
-      color: #333;
-    }
-
-    /* Decorative blurs */
-    .left-panel::after {
-      content: "";
-      position: absolute;
-      top: 20%;
-      right: 15%;
-      width: 260px;
-      height: 260px;
-      background: rgba(180, 170, 200, 0.25);
-      border-radius: 50%;
-      filter: blur(80px);
-    }
-
-    .left-panel::before {
-      content: "";
-      position: absolute;
-      bottom: 15%;
-      left: 10%;
-      width: 350px;
-      height: 350px;
-      background: rgba(200, 195, 210, 0.2);
-      border-radius: 50%;
-      filter: blur(100px);
-    }
-
-    /* Right Panel */
-    .right-panel {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
+      gap: 24px;
       padding: 40px;
     }
 
-    .form-container {
-      width: 100%;
-      max-width: 400px;
+    .demo-container h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2328;
     }
 
-    /* Sparkle icon */
-    .sparkle-icon {
+    .demo-controls {
       display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       justify-content: center;
-      margin-bottom: 24px;
     }
 
-    .sparkle-icon svg {
-      width: 32px;
-      height: 32px;
-    }
-
-    .form-header {
-      text-align: center;
-      margin-bottom: 36px;
-    }
-
-    .form-header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #1a1a2e;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
-    }
-
-    .form-header p {
-      font-size: 14px;
-      color: #888;
-    }
-
-    /* Form fields */
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
+    .demo-controls button {
+      padding: 6px 16px;
+      border-radius: 6px;
       font-size: 13px;
       font-weight: 500;
-      color: #333;
-      margin-bottom: 8px;
-    }
-
-    .form-group .input-wrapper {
-      position: relative;
-    }
-
-    .form-group input {
-      width: 100%;
-      height: 48px;
-      border: none;
-      border-bottom: 1.5px solid #e0e0e0;
-      padding: 0 40px 0 0;
-      font-size: 15px;
-      font-family: inherit;
-      color: #1a1a2e;
-      background: transparent;
-      outline: none;
-      transition: border-color 0.3s;
-    }
-
-    .form-group input:focus {
-      border-bottom-color: #5b21b6;
-    }
-
-    .form-group input::placeholder {
-      color: #ccc;
-    }
-
-    .form-group input[type="password"]:not(:placeholder-shown) {
-      font-family: inherit;
-      letter-spacing: 2px;
-    }
-
-    /* Hide browser-provided password reveal/clear buttons (e.g. Edge) */
-    .form-group input[type="password"]::-ms-reveal,
-    .form-group input[type="password"]::-ms-clear {
-      display: none;
-    }
-
-    .toggle-password {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
+      border: 1px solid #d0d7de;
+      background: #fff;
+      color: #1f2328;
       cursor: pointer;
-      color: #666;
-      padding: 6px;
-      transition: color 0.2s;
+      transition: all .15s;
     }
+    .demo-controls button:hover { background: #f3f4f6; border-color: #8b949e; }
 
-    .toggle-password:hover {
-      color: #333;
-    }
-
-    /* Remember & Forgot */
-    .form-options {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #555;
-      cursor: pointer;
-    }
-
-    .remember-me input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: #5b21b6;
-      cursor: pointer;
-    }
-
-    .forgot-link {
-      font-size: 13px;
-      color: #5b21b6;
-      text-decoration: none;
-      font-weight: 500;
-      transition: opacity 0.2s;
-    }
-
-    .forgot-link:hover {
-      opacity: 0.8;
-    }
-
-    /* Buttons */
-    .btn-login {
-      position: relative;
-      width: 100%;
-      height: 50px;
-      border-radius: 25px;
-      border: 1.5px solid #1a1a2e;
-      background: #1a1a2e;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      overflow: hidden;
-      margin-bottom: 14px;
-      transition: all 0.3s;
-    }
-
-    .btn-login .btn-text {
-      display: inline-block;
-      transition: all 0.3s;
-    }
-
-    .btn-login .btn-hover-content {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #5b21b6;
-      color: #fff;
-      opacity: 0;
-      transition: all 0.3s;
-      border-radius: 25px;
-    }
-
-    .btn-login:hover .btn-text {
-      transform: translateX(40px);
-      opacity: 0;
-    }
-
-    .btn-login:hover .btn-hover-content {
-      opacity: 1;
-    }
-
-    .btn-google {
-      position: relative;
-      width: 100%;
-      height: 50px;
-      border-radius: 25px;
-      border: 1.5px solid #e0e0e0;
-      background: #f5f5f5;
-      color: #333;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      overflow: hidden;
-      transition: all 0.3s;
-    }
-
-    .btn-google .btn-text {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s;
-    }
-
-    .btn-google .btn-hover-content {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #5b21b6;
-      color: #fff;
-      opacity: 0;
-      transition: all 0.3s;
-      border-radius: 25px;
-    }
-
-    .btn-google:hover .btn-text {
-      transform: translateX(40px);
-      opacity: 0;
-    }
-
-    .btn-google:hover .btn-hover-content {
-      opacity: 1;
-    }
-
-    .google-icon {
-      width: 18px;
-      height: 18px;
-    }
-
-    /* Sign up link */
-    .signup-link {
-      text-align: center;
-      font-size: 13px;
-      color: #888;
-      margin-top: 32px;
-    }
-
-    .signup-link a {
-      color: #1a1a2e;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .signup-link a:hover {
-      text-decoration: underline;
-    }
-
-    /* ============ ANIMATED CHARACTERS ============ */
+    /* ============ 角色场景（唯一保留的视觉结构） ============ */
     .characters-scene {
       position: relative;
       width: 480px;
       height: 360px;
     }
 
-    /* Character base styles */
     .character {
       position: absolute;
       bottom: 0;
@@ -398,54 +65,17 @@
       transform-origin: bottom center;
     }
 
-    /* Purple rectangle */
-    .char-purple {
-      left: 60px;
-      width: 170px;
-      height: 370px;
-      background: #6c3ff5;
-      border-radius: 10px 10px 0 0;
-      z-index: 1;
-    }
+    .char-purple { left: 60px; width: 170px; height: 370px; background: #6c3ff5; border-radius: 10px 10px 0 0; z-index: 1; }
+    .char-black  { left: 220px; width: 115px; height: 290px; background: #2d2d2d; border-radius: 8px 8px 0 0; z-index: 2; }
+    .char-orange { left: 0; width: 230px; height: 190px; background: #ff9b6b; border-radius: 115px 115px 0 0; z-index: 3; }
+    .char-yellow { left: 290px; width: 135px; height: 215px; background: #e8d754; border-radius: 68px 68px 0 0; z-index: 4; }
 
-    /* Black rectangle */
-    .char-black {
-      left: 220px;
-      width: 115px;
-      height: 290px;
-      background: #2d2d2d;
-      border-radius: 8px 8px 0 0;
-      z-index: 2;
-    }
-
-    /* Orange semi-circle */
-    .char-orange {
-      left: 0;
-      width: 230px;
-      height: 190px;
-      background: #ff9b6b;
-      border-radius: 115px 115px 0 0;
-      z-index: 3;
-    }
-
-    /* Yellow rounded */
-    .char-yellow {
-      left: 290px;
-      width: 135px;
-      height: 215px;
-      background: #e8d754;
-      border-radius: 68px 68px 0 0;
-      z-index: 4;
-    }
-
-    /* Eyes container */
     .eyes {
       position: absolute;
       display: flex;
       transition: all 0.7s ease-in-out;
     }
 
-    /* Eyeball (white with pupil) */
     .eyeball {
       border-radius: 50%;
       background: white;
@@ -455,375 +85,274 @@
       transition: height 0.15s ease;
       overflow: hidden;
     }
-
-    /* Pupil */
     .pupil {
       border-radius: 50%;
       background: #2d2d2d;
       transition: transform 0.1s ease-out;
     }
-
-    /* Bare pupil (no white eyeball) */
     .bare-pupil {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #2d2d2d;
-      transition: transform 0.7s ease-in-out;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #2d2d2d; transition: transform 0.7s ease-in-out;
     }
 
-    /* Yellow mouth */
-    .yellow-mouth {
-      position: absolute;
-      width: 50px;
-      height: 4px;
-      background: #2d2d2d;
-      border-radius: 2px;
-      transition: all 0.7s ease-in-out;
-    }
-
-    /* Shake-head: smooth left-right oscillation on face parts */
-    @keyframes shakeHead {
-
-      0%,
-      100% {
-        translate: 0 0;
-      }
-
-      10% {
-        translate: -9px 0;
-      }
-
-      20% {
-        translate: 7px 0;
-      }
-
-      30% {
-        translate: -6px 0;
-      }
-
-      40% {
-        translate: 5px 0;
-      }
-
-      50% {
-        translate: -4px 0;
-      }
-
-      60% {
-        translate: 3px 0;
-      }
-
-      70% {
-        translate: -2px 0;
-      }
-
-      80% {
-        translate: 1px 0;
-      }
-
-      90% {
-        translate: -0.5px 0;
-      }
-    }
-
-    .eyes.shake-head,
-    .yellow-mouth.shake-head,
-    .orange-mouth.shake-head {
-      animation: shakeHead 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-    }
-
-    /* Sad mouth (curved down) for orange character on error */
     .orange-mouth {
       position: absolute;
-      width: 28px;
-      height: 14px;
-      border: 3px solid #2d2d2d;
-      border-top: none;
+      width: 28px; height: 14px;
+      border: 3px solid #2d2d2d; border-top: none;
       border-radius: 0 0 14px 14px;
       opacity: 0;
       transition: all 0.7s ease-in-out;
     }
+    .orange-mouth.visible { opacity: 1; }
 
-    .orange-mouth.visible {
-      opacity: 1;
+    .yellow-mouth {
+      position: absolute;
+      width: 50px; height: 4px;
+      background: #2d2d2d; border-radius: 2px;
+      transition: all 0.7s ease-in-out;
     }
 
-    /* Error styles */
-    .error-msg {
-      display: none;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: #dc2626;
-      background: rgba(220, 38, 38, 0.08);
-      border: 1px solid rgba(220, 38, 38, 0.2);
-      border-radius: 10px;
-      margin-bottom: 16px;
+    /* ============ 动画关键帧 ============ */
+
+    /* 摇头（原版保留） */
+    @keyframes shakeHead {
+      0%,100% { translate: 0 0; }
+      10%  { translate: -9px 0; }
+      20%  { translate: 7px 0; }
+      30%  { translate: -6px 0; }
+      40%  { translate: 5px 0; }
+      50%  { translate: -4px 0; }
+      60%  { translate: 3px 0; }
+      70%  { translate: -2px 0; }
+      80%  { translate: 1px 0; }
+      90%  { translate: -0.5px 0; }
+    }
+    .eyes.shake-head, .yellow-mouth.shake-head, .orange-mouth.shake-head {
+      animation: shakeHead 0.8s cubic-bezier(0.36,0.07,0.19,0.97) both;
     }
 
-    .form-group input.error {
-      border-bottom-color: #dc2626;
+    /* 轻点头 — 橙色角色在浏览场景下周期性使用 */
+    @keyframes gentleNod {
+      0%,100% { transform: translateY(0) skewX(0deg); }
+      30%  { transform: translateY(-3px) skewX(1deg); }
+      60%  { transform: translateY(0) skewX(0deg); }
     }
 
-    .form-group label.error-label {
-      color: #dc2626;
+    /* 思考摆动 — 黄色角色在编辑场景下使用 */
+    @keyframes thinkSway {
+      0%,100% { transform: skewX(0deg); }
+      25% { transform: skewX(2deg); }
+      75% { transform: skewX(-1.5deg); }
     }
 
-    /* Responsive */
-    @media (max-width: 900px) {
-      #login-page {
-        grid-template-columns: 1fr;
-      }
+    /* 轻快弹跳 — 保存成功 / 加载完成 */
+    @keyframes bounceUp {
+      0%   { transform: translateY(0); }
+      30%  { transform: translateY(-10px); }
+      50%  { transform: translateY(-6px); }
+      70%  { transform: translateY(-2px); }
+      100% { transform: translateY(0); }
+    }
 
-      .left-panel {
-        display: none;
-      }
+    /* 专注微动 — 嘴唇轻微颤动 */
+    @keyframes lipQuiver {
+      0%,100% { height: 4px; }
+      25%  { height: 2px; }
+      75%  { height: 3px; }
+    }
+
+    /* 查看场景：倾斜探视（在 scroll 期间短时附加） */
+    @keyframes leanForward {
+      0%,100% { transform: skewX(2deg); }
+      50% { transform: skewX(6deg); }
+    }
+    .character.lean-forward {
+      animation: leanForward 1.2s ease-in-out;
     }
   </style>
 </head>
-
 <body>
-  <!-- Login Page -->
-  <div id="login-page">
-    <!-- Left Panel -->
-    <div class="left-panel">
-      <div class="logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M12 2L15 9H9L12 2Z" />
-          <path d="M12 22L9 15H15L12 22Z" />
-          <path d="M2 12L9 9V15L2 12Z" />
-          <path d="M22 12L15 15V9L22 12Z" />
-        </svg>
-        <span>CareerCompass</span>
-      </div>
-      <div class="characters-wrapper">
-        <div class="characters-scene" id="characters-scene">
-          <!-- Purple character -->
-          <div class="character char-purple" id="char-purple">
-            <div class="eyes" id="purple-eyes" style="left: 45px; top: 40px; gap: 28px">
-              <div class="eyeball" id="purple-eye-l" style="width: 18px; height: 18px">
-                <div class="pupil" id="purple-pupil-l" style="width: 7px; height: 7px"></div>
-              </div>
-              <div class="eyeball" id="purple-eye-r" style="width: 18px; height: 18px">
-                <div class="pupil" id="purple-pupil-r" style="width: 7px; height: 7px"></div>
-              </div>
-            </div>
-          </div>
-          <!-- Black character -->
-          <div class="character char-black" id="char-black">
-            <div class="eyes" id="black-eyes" style="left: 26px; top: 32px; gap: 20px">
-              <div class="eyeball" id="black-eye-l" style="width: 16px; height: 16px">
-                <div class="pupil" id="black-pupil-l" style="width: 6px; height: 6px"></div>
-              </div>
-              <div class="eyeball" id="black-eye-r" style="width: 16px; height: 16px">
-                <div class="pupil" id="black-pupil-r" style="width: 6px; height: 6px"></div>
-              </div>
-            </div>
-          </div>
-          <!-- Orange character -->
-          <div class="character char-orange" id="char-orange">
-            <div class="eyes" id="orange-eyes" style="left: 82px; top: 90px; gap: 28px">
-              <div class="bare-pupil" id="orange-pupil-l"></div>
-              <div class="bare-pupil" id="orange-pupil-r"></div>
-            </div>
-            <div class="orange-mouth" id="orange-mouth" style="left: 90px; top: 120px"></div>
-          </div>
-          <!-- Yellow character -->
-          <div class="character char-yellow" id="char-yellow">
-            <div class="eyes" id="yellow-eyes" style="left: 52px; top: 40px; gap: 20px">
-              <div class="bare-pupil" id="yellow-pupil-l"></div>
-              <div class="bare-pupil" id="yellow-pupil-r"></div>
-            </div>
-            <div class="yellow-mouth" id="yellow-mouth" style="left: 40px; top: 88px"></div>
-          </div>
-        </div>
-      </div>
-      <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact</a>
-      </div>
+  <!-- ============ DEMO 操作区 ============ -->
+  <div class="demo-container">
+    <h2>角色动画演示面板</h2>
+    <div class="demo-controls">
+      <button onclick="window.__characters.doScrollDown()">&#8595; 向下滚动</button>
+      <button onclick="window.__characters.doScrollUp()">&#8593; 向上滚动</button>
+      <button onclick="window.__characters.doBrowseContent()">&#128214; 浏览内容</button>
+      <button onclick="window.__characters.doInfoCheck()">&#128269; 核对信息</button>
+      <button onclick="window.__characters.doEditFocus()">&#9998; 开始编辑</button>
+      <button onclick="window.__characters.doEditBlur()">&#9997; 结束编辑</button>
+      <button onclick="window.__characters.doSaveSuccess()">&#10003; 保存成功</button>
+      <button onclick="window.__characters.doSaveError()">&#10007; 保存失败</button>
+      <button onclick="window.__characters.doNavSwitch()">&#9733; 切换页面</button>
+      <button onclick="window.__characters.doPipelineRunning(true)">&#9654; 管线运行</button>
+      <button onclick="window.__characters.doPipelineRunning(false)">&#9632; 管线结束</button>
     </div>
-
-    <!-- Right Panel -->
-    <div class="right-panel">
-      <div class="form-container">
-        <div class="sparkle-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L13.5 9H10.5L12 2Z" fill="#1a1a2e" />
-            <path d="M12 22L10.5 15H13.5L12 22Z" fill="#1a1a2e" />
-            <path d="M2 12L9 10.5V13.5L2 12Z" fill="#1a1a2e" />
-            <path d="M22 12L15 13.5V10.5L22 12Z" fill="#1a1a2e" />
-          </svg>
-        </div>
-        <div class="form-header">
-          <h1>Welcome back!</h1>
-          <p>Please enter your details</p>
-        </div>
-
-        <form id="login-form" onsubmit="return false;">
-          <div class="form-group">
-            <label id="email-label" for="email">Email</label>
-            <div class="input-wrapper">
-              <input type="email" id="email" placeholder="you@example.com" autocomplete="off" />
-            </div>
+    <!-- ============ 角色场景（结构和样式完整保持原版） ============ -->
+    <div class="characters-scene" id="characters-scene">
+      <div class="character char-purple" id="char-purple">
+        <div class="eyes" id="purple-eyes" style="left:45px;top:40px;gap:28px">
+          <div class="eyeball" id="purple-eye-l" style="width:18px;height:18px">
+            <div class="pupil" id="purple-pupil-l" style="width:7px;height:7px"></div>
           </div>
-
-          <div class="form-group">
-            <label id="password-label" for="password">Password</label>
-            <div class="input-wrapper">
-              <input type="password" id="password" placeholder="••••••••" />
-              <button type="button" class="toggle-password" id="toggle-password">
-                <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <svg id="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                  </path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </button>
-            </div>
+          <div class="eyeball" id="purple-eye-r" style="width:18px;height:18px">
+            <div class="pupil" id="purple-pupil-r" style="width:7px;height:7px"></div>
           </div>
-
-          <div class="form-options">
-            <label class="remember-me">
-              <input type="checkbox" checked /> Remember for 30 days
-            </label>
-            <a href="#" class="forgot-link">Forgot password?</a>
-          </div>
-
-          <div class="error-msg" id="error-msg"></div>
-
-          <button type="submit" class="btn-login" id="btn-login">
-            <span class="btn-text">Log In</span>
-            <div class="btn-hover-content">
-              <span>Log In</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </div>
-          </button>
-
-          <button type="button" class="btn-google" id="btn-google">
-            <span class="btn-text">
-              <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                  fill="#4285F4" />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853" />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 001 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84v-.14z"
-                  fill="#FBBC05" />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335" />
-              </svg>
-              Log in with Google
-            </span>
-            <div class="btn-hover-content">
-              <span>Log in with Google</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </div>
-          </button>
-        </form>
-
-        <div class="signup-link">
-          Don't have an account? <a href="#">Sign Up</a>
         </div>
+      </div>
+      <div class="character char-black" id="char-black">
+        <div class="eyes" id="black-eyes" style="left:26px;top:32px;gap:20px">
+          <div class="eyeball" id="black-eye-l" style="width:16px;height:16px">
+            <div class="pupil" id="black-pupil-l" style="width:6px;height:6px"></div>
+          </div>
+          <div class="eyeball" id="black-eye-r" style="width:16px;height:16px">
+            <div class="pupil" id="black-pupil-r" style="width:6px;height:6px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="character char-orange" id="char-orange">
+        <div class="eyes" id="orange-eyes" style="left:82px;top:90px;gap:28px">
+          <div class="bare-pupil" id="orange-pupil-l"></div>
+          <div class="bare-pupil" id="orange-pupil-r"></div>
+        </div>
+        <div class="orange-mouth" id="orange-mouth" style="left:90px;top:120px"></div>
+      </div>
+      <div class="character char-yellow" id="char-yellow">
+        <div class="eyes" id="yellow-eyes" style="left:52px;top:40px;gap:20px">
+          <div class="bare-pupil" id="yellow-pupil-l"></div>
+          <div class="bare-pupil" id="yellow-pupil-r"></div>
+        </div>
+        <div class="yellow-mouth" id="yellow-mouth" style="left:40px;top:88px"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // ============ PASSWORD TOGGLE ============
-    const passwordInput = document.getElementById("password");
-    const emailInput = document.getElementById("email");
-    const toggleBtn = document.getElementById("toggle-password");
-    const eyeIcon = document.getElementById("eye-icon");
-    const eyeOffIcon = document.getElementById("eye-off-icon");
-    let showPassword = false;
-    let isLoginError = false;
+    // ========================================================================
+    //  角色动画系统 — 针对仪表盘/配置面板场景优化
+    //  原版（animatedlogin）中的密码输入/偷看/表单校验逻辑已全部移除，
+    //  替换为：查看场景（滚动/浏览/核对）、编辑场景（输入/保存/格式调整）、
+    //  系统场景（页面切换/管线运行/加载成功/失败）三类动画序列。
+    // ========================================================================
 
-    toggleBtn.addEventListener("click", () => {
-      showPassword = !showPassword;
-      passwordInput.type = showPassword ? "text" : "password";
-      eyeIcon.style.display = showPassword ? "none" : "block";
-      eyeOffIcon.style.display = showPassword ? "block" : "none";
-      updateCharacters();
-    });
+    (function initCharacters() {
+      // ---------- DOM 缓存 ----------
+      const purple = document.getElementById("char-purple");
+      const black = document.getElementById("char-black");
+      const orange = document.getElementById("char-orange");
+      const yellow = document.getElementById("char-yellow");
 
-    // ============ MOUSE TRACKING & CHARACTER ANIMATION ============
-    let mouseX = 0,
-      mouseY = 0;
-    let isTyping = false;
-    let isLookingAtEachOther = false;
-    let isPurpleBlinking = false;
-    let isBlackBlinking = false;
-    let isPurplePeeking = false;
-    let typingTimer = null;
+      const purpleEyes = document.getElementById("purple-eyes");
+      const purpleEyeL = document.getElementById("purple-eye-l");
+      const purpleEyeR = document.getElementById("purple-eye-r");
+      const purplePupilL = document.getElementById("purple-pupil-l");
+      const purplePupilR = document.getElementById("purple-pupil-r");
 
-    document.addEventListener("mousemove", (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      if (!isTyping && !isLoginError) updateCharacters();
-    });
+      const blackEyes = document.getElementById("black-eyes");
+      const blackEyeL = document.getElementById("black-eye-l");
+      const blackEyeR = document.getElementById("black-eye-r");
+      const blackPupilL = document.getElementById("black-pupil-l");
+      const blackPupilR = document.getElementById("black-pupil-r");
 
-    let isPasswordFocused = false;
+      const orangeEyes = document.getElementById("orange-eyes");
+      const orangePupilL = document.getElementById("orange-pupil-l");
+      const orangePupilR = document.getElementById("orange-pupil-r");
+      const orangeMouth = document.getElementById("orange-mouth");
 
-    // Typing detection
-    emailInput.addEventListener("focus", () => {
-      setTyping(true);
-    });
-    emailInput.addEventListener("blur", () => {
-      setTyping(false);
-    });
-    emailInput.addEventListener("input", () => {
-      updateCharacters();
-    });
-    passwordInput.addEventListener("focus", () => {
-      isPasswordFocused = true;
-      updateCharacters();
-    });
-    passwordInput.addEventListener("blur", () => {
-      isPasswordFocused = false;
-      updateCharacters();
-    });
-    passwordInput.addEventListener("input", () => {
-      updateCharacters();
-    });
+      const yellowEyes = document.getElementById("yellow-eyes");
+      const yellowPupilL = document.getElementById("yellow-pupil-l");
+      const yellowPupilR = document.getElementById("yellow-pupil-r");
+      const yellowMouth = document.getElementById("yellow-mouth");
 
-    function setTyping(typing) {
-      isTyping = typing;
-      if (typing) {
-        isLookingAtEachOther = true;
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-          isLookingAtEachOther = false;
-          updateCharacters();
-        }, 800);
-      } else {
-        isLookingAtEachOther = false;
+      const scene = document.getElementById("characters-scene");
+
+      // ---------- 状态 ----------
+      let mouseX = 0, mouseY = 0;
+      let isPurpleBlinking = false;
+      let isBlackBlinking = false;
+
+      // 各场景当前激活态（优先级：error > pipeline > editing > viewing > idle）
+      let activeScene = "idle";           // idle | viewing | editing | error | pipeline
+      let isErrorActive = false;
+      let isPipelineRunning = false;
+      let editFocusTimer = null;
+      let sceneTransitionTimer = null;
+
+      // 查看场景子状态
+      let scrollDirection = 0;            // -1(上) | 0(无) | 1(下)
+      let isBrowsingContent = false;
+      let isInfoChecking = false;
+
+      // ---------- 工具函数 ----------
+
+      function calcPosition(el) {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 3;
+        const dx = mouseX - cx;
+        const dy = mouseY - cy;
+        return {
+          faceX: Math.max(-15, Math.min(15, dx / 20)),
+          faceY: Math.max(-10, Math.min(10, dy / 30)),
+          bodySkew: Math.max(-6, Math.min(6, -dx / 120)),
+        };
       }
-      updateCharacters();
-    }
 
-    // Blinking
-    function scheduleBlinkPurple() {
-      setTimeout(
-        () => {
+      function calcPupilOffset(el, maxOffset) {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = mouseX - cx;
+        const dy = mouseY - cy;
+        const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 60);
+        const angle = Math.atan2(dy, dx);
+        const offset = Math.min(dist / 60, 1) * maxOffset;
+        return { x: Math.cos(angle) * offset, y: Math.sin(angle) * offset };
+      }
+
+      function resetAllTransforms(keepTransition) {
+        if (!keepTransition) {
+          // 短暂禁用 transition 以便立即重置
+          [purple, black, orange, yellow].forEach(el => el.style.transition = "none");
+        }
+        purple.style.transform = "";
+        purple.style.height = "";
+        black.style.transform = "";
+        orange.style.transform = "";
+        yellow.style.transform = "";
+
+        purpleEyes.style.left = "";
+        purpleEyes.style.top = "";
+        blackEyes.style.left = "";
+        blackEyes.style.top = "";
+        orangeEyes.style.left = "";
+        orangeEyes.style.top = "";
+        yellowEyes.style.left = "";
+        yellowEyes.style.top = "";
+
+        yellowMouth.style.left = "";
+        yellowMouth.style.top = "";
+        yellowMouth.style.transform = "";
+        orangeMouth.style.left = "";
+
+        purplePupilL.style.transform = "";
+        purplePupilR.style.transform = "";
+        blackPupilL.style.transform = "";
+        blackPupilR.style.transform = "";
+        orangePupilL.style.transform = "";
+        orangePupilR.style.transform = "";
+        yellowPupilL.style.transform = "";
+        yellowPupilR.style.transform = "";
+
+        void document.body.offsetHeight;
+        if (!keepTransition) {
+          [purple, black, orange, yellow].forEach(el => el.style.transition = "");
+        }
+      }
+
+      // ---------- 眨眼（原版保留） ----------
+      function scheduleBlinkPurple() {
+        setTimeout(() => {
           isPurpleBlinking = true;
           updateCharacters();
           setTimeout(() => {
@@ -831,14 +360,10 @@
             updateCharacters();
             scheduleBlinkPurple();
           }, 150);
-        },
-        Math.random() * 4000 + 3000,
-      );
-    }
-
-    function scheduleBlinkBlack() {
-      setTimeout(
-        () => {
+        }, Math.random() * 4000 + 3000);
+      }
+      function scheduleBlinkBlack() {
+        setTimeout(() => {
           isBlackBlinking = true;
           updateCharacters();
           setTimeout(() => {
@@ -846,376 +371,591 @@
             updateCharacters();
             scheduleBlinkBlack();
           }, 150);
-        },
-        Math.random() * 4000 + 3000,
-      );
-    }
-
-    scheduleBlinkPurple();
-    scheduleBlinkBlack();
-
-    // Purple peeking when password is visible
-    function schedulePeek() {
-      if (passwordInput.value.length > 0 && showPassword) {
-        setTimeout(
-          () => {
-            if (passwordInput.value.length > 0 && showPassword) {
-              isPurplePeeking = true;
-              updateCharacters();
-              setTimeout(() => {
-                isPurplePeeking = false;
-                updateCharacters();
-                schedulePeek();
-              }, 800);
-            }
-          },
-          Math.random() * 3000 + 2000,
-        );
+        }, Math.random() * 4000 + 3000);
       }
-    }
+      scheduleBlinkPurple();
+      scheduleBlinkBlack();
 
-    // Watch for password visibility changes to trigger peeking
-    toggleBtn.addEventListener("click", () => {
-      if (showPassword) schedulePeek();
-    });
+      // ---------- 鼠标追踪 ----------
+      document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (activeScene === "idle" || activeScene === "viewing") {
+          updateCharacters();
+        }
+      });
 
-    // Calculate character position based on mouse
-    function calcPosition(el) {
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 3;
-      const dx = mouseX - cx;
-      const dy = mouseY - cy;
-      const faceX = Math.max(-15, Math.min(15, dx / 20));
-      const faceY = Math.max(-10, Math.min(10, dy / 30));
-      const bodySkew = Math.max(-6, Math.min(6, -dx / 120));
-      return { faceX, faceY, bodySkew };
-    }
+      // ================================================================
+      //  核心更新函数：按场景优先级调度
+      // ================================================================
+      function updateCharacters() {
+        // 眨眼始终生效（独立于场景）
+        purpleEyeL.style.height = isPurpleBlinking ? "2px" : "18px";
+        purpleEyeR.style.height = isPurpleBlinking ? "2px" : "18px";
+        blackEyeL.style.height = isBlackBlinking ? "2px" : "16px";
+        blackEyeR.style.height = isBlackBlinking ? "2px" : "16px";
 
-    function calcPupilOffset(el, maxDist) {
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = mouseX - cx;
-      const dy = mouseY - cy;
-      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
-      const angle = Math.atan2(dy, dx);
-      return { x: Math.cos(angle) * dist, y: Math.sin(angle) * dist };
-    }
-
-    function updateCharacters() {
-      const purple = document.getElementById("char-purple");
-      const black = document.getElementById("char-black");
-      const orange = document.getElementById("char-orange");
-      const yellow = document.getElementById("char-yellow");
-
-      const purplePos = calcPosition(purple);
-      const blackPos = calcPosition(black);
-      const orangePos = calcPosition(orange);
-      const yellowPos = calcPosition(yellow);
-
-      const pwdLen = passwordInput.value.length;
-      const isShowingPwd = pwdLen > 0 && showPassword;
-      // Characters look away when password field is focused (hiding password)
-      const isLookingAway = isPasswordFocused && !showPassword;
-
-      // ---- Purple body ----
-      if (isShowingPwd) {
-        purple.style.transform = "skewX(0deg)";
-        purple.style.height = "370px";
-      } else if (isLookingAway) {
-        // Tilt away from the form (lean left)
-        purple.style.transform = "skewX(-14deg) translateX(-20px)";
-        purple.style.height = "410px";
-      } else if (isTyping) {
-        purple.style.transform = `skewX(${(purplePos.bodySkew || 0) - 12}deg) translateX(40px)`;
-        purple.style.height = "410px";
-      } else {
-        purple.style.transform = `skewX(${purplePos.bodySkew}deg)`;
-        purple.style.height = "370px";
+        // 场景优先级：error > pipeline > editing > viewing > idle
+        if (isErrorActive) {
+          applyErrorPose();
+          return;
+        }
+        if (isPipelineRunning) {
+          applyPipelinePose();
+          return;
+        }
+        if (activeScene === "editing") {
+          applyEditingPose();
+          return;
+        }
+        if (activeScene === "viewing") {
+          applyViewingPose();
+          return;
+        }
+        // idle — 默认鼠标追踪
+        applyIdlePose();
       }
 
-      // Purple eyes
-      const purpleEyes = document.getElementById("purple-eyes");
-      const purpleEyeL = document.getElementById("purple-eye-l");
-      const purpleEyeR = document.getElementById("purple-eye-r");
-      const purplePupilL = document.getElementById("purple-pupil-l");
-      const purplePupilR = document.getElementById("purple-pupil-r");
+      // ================================================================
+      //  场景姿势函数
+      // ================================================================
 
-      purpleEyeL.style.height = isPurpleBlinking ? "2px" : "18px";
-      purpleEyeR.style.height = isPurpleBlinking ? "2px" : "18px";
+      // --- idle：鼠标追踪 ---
+      function applyIdlePose() {
+        const pPos = calcPosition(purple);
+        const bPos = calcPosition(black);
+        const oPos = calcPosition(orange);
+        const yPos = calcPosition(yellow);
 
-      if (isLoginError) {
-        // Sad look down-left
+        purple.style.transform = `skewX(${pPos.bodySkew}deg)`;
+        black.style.transform = `skewX(${bPos.bodySkew}deg)`;
+        orange.style.transform = `skewX(${oPos.bodySkew}deg)`;
+        yellow.style.transform = `skewX(${yPos.bodySkew}deg)`;
+
+        purpleEyes.style.left = 45 + pPos.faceX + "px";
+        purpleEyes.style.top = 40 + pPos.faceY + "px";
+        blackEyes.style.left = 26 + bPos.faceX + "px";
+        blackEyes.style.top = 32 + bPos.faceY + "px";
+        orangeEyes.style.left = 82 + oPos.faceX + "px";
+        orangeEyes.style.top = 90 + oPos.faceY + "px";
+        yellowEyes.style.left = 52 + yPos.faceX + "px";
+        yellowEyes.style.top = 40 + yPos.faceY + "px";
+
+        const po = calcPupilOffset(purpleEyeL, 5);
+        purplePupilL.style.transform = `translate(${po.x}px,${po.y}px)`;
+        purplePupilR.style.transform = `translate(${po.x}px,${po.y}px)`;
+        const bo = calcPupilOffset(blackEyeL, 4);
+        blackPupilL.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+        blackPupilR.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+        const oo = calcPupilOffset(orangePupilL, 5);
+        orangePupilL.style.transform = `translate(${oo.x}px,${oo.y}px)`;
+        orangePupilR.style.transform = `translate(${oo.x}px,${oo.y}px)`;
+        const yo = calcPupilOffset(yellowPupilL, 5);
+        yellowPupilL.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+        yellowPupilR.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+
+        yellowMouth.style.left = 40 + yPos.faceX + "px";
+        yellowMouth.style.top = 88 + yPos.faceY + "px";
+        yellowMouth.style.transform = "rotate(0deg)";
+        orangeMouth.style.left = 90 + oPos.faceX + "px";
+      }
+
+      // --- viewing：查看场景 ---
+      function applyViewingPose() {
+        const pPos = calcPosition(purple);
+        const bPos = calcPosition(black);
+        const oPos = calcPosition(orange);
+        const yPos = calcPosition(yellow);
+
+        // 滚动偏移：向下滚 = 前倾，向上滚 = 后仰
+        const scrollLean = scrollDirection * 4;
+        const scrollFaceY = scrollDirection * 3;
+
+        purple.style.transform = `skewX(${pPos.bodySkew + scrollLean}deg)`;
+        black.style.transform = `skewX(${bPos.bodySkew + scrollLean}deg)`;
+        orange.style.transform = `skewX(${oPos.bodySkew + scrollLean}deg)`;
+        yellow.style.transform = `skewX(${yPos.bodySkew + scrollLean}deg)`;
+
+        purpleEyes.style.left = 45 + pPos.faceX + "px";
+        purpleEyes.style.top = 40 + pPos.faceY + scrollFaceY + "px";
+        blackEyes.style.left = 26 + bPos.faceX + "px";
+        blackEyes.style.top = 32 + bPos.faceY + scrollFaceY + "px";
+        orangeEyes.style.left = 82 + oPos.faceX + "px";
+        orangeEyes.style.top = 90 + oPos.faceY + scrollFaceY + "px";
+        yellowEyes.style.left = 52 + yPos.faceX + "px";
+        yellowEyes.style.top = 40 + yPos.faceY + scrollFaceY + "px";
+
+        const po = calcPupilOffset(purpleEyeL, 5);
+        purplePupilL.style.transform = `translate(${po.x}px,${po.y}px)`;
+        purplePupilR.style.transform = `translate(${po.x}px,${po.y}px)`;
+        const bo = calcPupilOffset(blackEyeL, 4);
+        blackPupilL.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+        blackPupilR.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+        const oo = calcPupilOffset(orangePupilL, 5);
+        orangePupilL.style.transform = `translate(${oo.x}px,${oo.y}px)`;
+        orangePupilR.style.transform = `translate(${oo.x}px,${oo.y}px)`;
+        const yo = calcPupilOffset(yellowPupilL, 5);
+        yellowPupilL.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+        yellowPupilR.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+
+        yellowMouth.style.left = 40 + yPos.faceX + "px";
+        yellowMouth.style.top = 88 + yPos.faceY + "px";
+        yellowMouth.style.transform = "rotate(0deg)";
+        orangeMouth.style.left = 90 + oPos.faceX + "px";
+      }
+
+      // --- editing：编辑场景 ---
+      function applyEditingPose() {
+        const pPos = calcPosition(purple);
+        const bPos = calcPosition(black);
+
+        // 紫色探身看输入内容，黑色微微前倾，橙色黄色保持追踪
+        purple.style.transform = `skewX(${(pPos.bodySkew || 0) - 10}deg) translateX(30px)`;
+        purple.style.height = "400px";
+        black.style.transform = `skewX(${(bPos.bodySkew || 0) + 2}deg)`;
+        // 黄色进入思考摆动（在编辑场景中持续微动）
+        yellow.style.animation = "thinkSway 3s ease-in-out infinite";
+
+        // 紫色眼睛聚焦（稍微向右下偏移，模拟注视文本输入区域）
+        purpleEyes.style.left = 55 + pPos.faceX + "px";
+        purpleEyes.style.top = 55 + pPos.faceY + "px";
+        const po = calcPupilOffset(purpleEyeL, 5);
+        purplePupilL.style.transform = `translate(${po.x + 2}px,${po.y + 3}px)`;
+        purplePupilR.style.transform = `translate(${po.x + 2}px,${po.y + 3}px)`;
+
+        // 黑色微微偏头看紫色方向
+        blackEyes.style.left = 30 + bPos.faceX + "px";
+        blackEyes.style.top = 28 + bPos.faceY + "px";
+        const bo = calcPupilOffset(blackEyeL, 4);
+        blackPupilL.style.transform = `translate(${bo.x + 1}px,${bo.y}px)`;
+        blackPupilR.style.transform = `translate(${bo.x + 1}px,${bo.y}px)`;
+
+        // 橙色保持普通追踪
+        const oPos = calcPosition(orange);
+        orangeEyes.style.left = 82 + oPos.faceX + "px";
+        orangeEyes.style.top = 90 + oPos.faceY + "px";
+        orange.style.transform = `skewX(${oPos.bodySkew}deg)`;
+        orangeMouth.style.left = 90 + oPos.faceX + "px";
+
+        // 黄色嘴唇微颤（专注）
+        yellowMouth.style.animation = "lipQuiver 2s ease-in-out infinite";
+        yellowMouth.style.left = "40px";
+        yellowMouth.style.top = "88px";
+
+        // 黄色眼球追踪
+        const yPos = calcPosition(yellow);
+        yellowEyes.style.left = 52 + yPos.faceX + "px";
+        yellowEyes.style.top = 40 + yPos.faceY + "px";
+        const yo = calcPupilOffset(yellowPupilL, 5);
+        yellowPupilL.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+        yellowPupilR.style.transform = `translate(${yo.x}px,${yo.y}px)`;
+      }
+
+      // --- error：错误场景（橙色伤心 + 全体摇头） ---
+      function applyErrorPose() {
+        // 身体停止追踪
+        purple.style.transform = "skewX(-2deg)";
+        black.style.transform = "skewX(2deg)";
+        orange.style.transform = "skewX(0deg)";
+        yellow.style.transform = "skewX(0deg)";
+        purple.style.height = "";
+        yellow.style.animation = "";
+        yellowMouth.style.animation = "";
+
+        // 全体眼睛看左下
         purpleEyes.style.left = "30px";
         purpleEyes.style.top = "55px";
-        purplePupilL.style.transform = "translate(-3px, 4px)";
-        purplePupilR.style.transform = "translate(-3px, 4px)";
-      } else if (isLookingAway) {
-        // Eyes look up-left (away from form)
-        purpleEyes.style.left = "20px";
-        purpleEyes.style.top = "25px";
-        purplePupilL.style.transform = "translate(-5px, -5px)";
-        purplePupilR.style.transform = "translate(-5px, -5px)";
-      } else if (isShowingPwd) {
-        purpleEyes.style.left = "20px";
-        purpleEyes.style.top = "35px";
-        const px = isPurplePeeking ? 4 : -4;
-        const py = isPurplePeeking ? 5 : -4;
-        purplePupilL.style.transform = `translate(${px}px, ${py}px)`;
-        purplePupilR.style.transform = `translate(${px}px, ${py}px)`;
-      } else if (isLookingAtEachOther) {
-        purpleEyes.style.left = "55px";
-        purpleEyes.style.top = "65px";
-        purplePupilL.style.transform = "translate(3px, 4px)";
-        purplePupilR.style.transform = "translate(3px, 4px)";
-      } else {
-        purpleEyes.style.left = 45 + purplePos.faceX + "px";
-        purpleEyes.style.top = 40 + purplePos.faceY + "px";
-        const po = calcPupilOffset(purpleEyeL, 5);
-        purplePupilL.style.transform = `translate(${po.x}px, ${po.y}px)`;
-        purplePupilR.style.transform = `translate(${po.x}px, ${po.y}px)`;
-      }
-
-      // ---- Black body ----
-      if (isShowingPwd) {
-        black.style.transform = "skewX(0deg)";
-      } else if (isLookingAway) {
-        black.style.transform = "skewX(12deg) translateX(-10px)";
-      } else if (isLookingAtEachOther) {
-        black.style.transform = `skewX(${(blackPos.bodySkew || 0) * 1.5 + 10}deg) translateX(20px)`;
-      } else if (isTyping) {
-        black.style.transform = `skewX(${(blackPos.bodySkew || 0) * 1.5}deg)`;
-      } else {
-        black.style.transform = `skewX(${blackPos.bodySkew}deg)`;
-      }
-
-      // Black eyes
-      const blackEyes = document.getElementById("black-eyes");
-      const blackEyeL = document.getElementById("black-eye-l");
-      const blackEyeR = document.getElementById("black-eye-r");
-      const blackPupilL = document.getElementById("black-pupil-l");
-      const blackPupilR = document.getElementById("black-pupil-r");
-
-      blackEyeL.style.height = isBlackBlinking ? "2px" : "16px";
-      blackEyeR.style.height = isBlackBlinking ? "2px" : "16px";
-
-      if (isLoginError) {
         blackEyes.style.left = "15px";
         blackEyes.style.top = "40px";
-        blackPupilL.style.transform = "translate(-3px, 4px)";
-        blackPupilR.style.transform = "translate(-3px, 4px)";
-      } else if (isLookingAway) {
-        blackEyes.style.left = "10px";
-        blackEyes.style.top = "20px";
-        blackPupilL.style.transform = "translate(-4px, -5px)";
-        blackPupilR.style.transform = "translate(-4px, -5px)";
-      } else if (isShowingPwd) {
-        blackEyes.style.left = "10px";
-        blackEyes.style.top = "28px";
-        blackPupilL.style.transform = "translate(-4px, -4px)";
-        blackPupilR.style.transform = "translate(-4px, -4px)";
-      } else if (isLookingAtEachOther) {
-        blackEyes.style.left = "32px";
-        blackEyes.style.top = "12px";
-        blackPupilL.style.transform = "translate(0px, -4px)";
-        blackPupilR.style.transform = "translate(0px, -4px)";
-      } else {
-        blackEyes.style.left = 26 + blackPos.faceX + "px";
-        blackEyes.style.top = 32 + blackPos.faceY + "px";
-        const bo = calcPupilOffset(blackEyeL, 4);
-        blackPupilL.style.transform = `translate(${bo.x}px, ${bo.y}px)`;
-        blackPupilR.style.transform = `translate(${bo.x}px, ${bo.y}px)`;
-      }
-
-      // ---- Orange body ----
-      const orangeMouth = document.getElementById("orange-mouth");
-      if (isLoginError) {
-        orangeMouth.style.left = 80 + orangePos.faceX + "px";
-        orangeMouth.style.top = "130px";
-      }
-      if (isShowingPwd) {
-        orange.style.transform = "skewX(0deg)";
-      } else {
-        orange.style.transform = `skewX(${orangePos.bodySkew}deg)`;
-      }
-
-      // Orange eyes
-      const orangeEyes = document.getElementById("orange-eyes");
-      const orangePupilL = document.getElementById("orange-pupil-l");
-      const orangePupilR = document.getElementById("orange-pupil-r");
-
-      if (isLoginError) {
         orangeEyes.style.left = "60px";
         orangeEyes.style.top = "95px";
-        orangePupilL.style.transform = "translate(-3px, 4px)";
-        orangePupilR.style.transform = "translate(-3px, 4px)";
-      } else if (isLookingAway) {
-        orangeEyes.style.left = "50px";
-        orangeEyes.style.top = "75px";
-        orangePupilL.style.transform = "translate(-5px, -5px)";
-        orangePupilR.style.transform = "translate(-5px, -5px)";
-      } else if (isShowingPwd) {
-        orangeEyes.style.left = "50px";
-        orangeEyes.style.top = "85px";
-        orangePupilL.style.transform = "translate(-5px, -4px)";
-        orangePupilR.style.transform = "translate(-5px, -4px)";
-      } else {
-        orangeEyes.style.left = 82 + orangePos.faceX + "px";
-        orangeEyes.style.top = 90 + orangePos.faceY + "px";
-        const oo = calcPupilOffset(orangePupilL, 5);
-        orangePupilL.style.transform = `translate(${oo.x}px, ${oo.y}px)`;
-        orangePupilR.style.transform = `translate(${oo.x}px, ${oo.y}px)`;
-      }
-
-      // ---- Yellow body ----
-      if (isShowingPwd) {
-        yellow.style.transform = "skewX(0deg)";
-      } else {
-        yellow.style.transform = `skewX(${yellowPos.bodySkew}deg)`;
-      }
-
-      // Yellow eyes & mouth
-      const yellowEyes = document.getElementById("yellow-eyes");
-      const yellowPupilL = document.getElementById("yellow-pupil-l");
-      const yellowPupilR = document.getElementById("yellow-pupil-r");
-      const yellowMouth = document.getElementById("yellow-mouth");
-
-      if (isLoginError) {
         yellowEyes.style.left = "35px";
         yellowEyes.style.top = "45px";
-        yellowPupilL.style.transform = "translate(-3px, 4px)";
-        yellowPupilR.style.transform = "translate(-3px, 4px)";
+
+        purplePupilL.style.transform = "translate(-3px,4px)";
+        purplePupilR.style.transform = "translate(-3px,4px)";
+        blackPupilL.style.transform = "translate(-3px,4px)";
+        blackPupilR.style.transform = "translate(-3px,4px)";
+        orangePupilL.style.transform = "translate(-3px,4px)";
+        orangePupilR.style.transform = "translate(-3px,4px)";
+        yellowPupilL.style.transform = "translate(-3px,4px)";
+        yellowPupilR.style.transform = "translate(-3px,4px)";
+
         yellowMouth.style.left = "30px";
         yellowMouth.style.top = "92px";
         yellowMouth.style.transform = "rotate(-8deg)";
-      } else if (isLookingAway) {
-        yellowEyes.style.left = "20px";
-        yellowEyes.style.top = "30px";
-        yellowPupilL.style.transform = "translate(-5px, -5px)";
-        yellowPupilR.style.transform = "translate(-5px, -5px)";
-        yellowMouth.style.left = "15px";
-        yellowMouth.style.top = "78px";
-        yellowMouth.style.transform = "rotate(0deg)";
-      } else if (isShowingPwd) {
-        yellowEyes.style.left = "20px";
-        yellowEyes.style.top = "35px";
-        yellowPupilL.style.transform = "translate(-5px, -4px)";
-        yellowPupilR.style.transform = "translate(-5px, -4px)";
-        yellowMouth.style.left = "10px";
+        orangeMouth.style.left = "80px";
+      }
+
+      // --- pipeline：管线运行中 ---
+      function applyPipelinePose() {
+        // 全体保持专注姿态，黄色轻微摆动
+        purple.style.transform = "skewX(3deg)";
+        black.style.transform = "skewX(-2deg)";
+        orange.style.transform = "skewX(2deg)";
+        purple.style.height = "";
+        yellow.style.animation = "thinkSway 2.5s ease-in-out infinite";
+        yellowMouth.style.animation = "";
+
+        purpleEyes.style.left = "50px";
+        purpleEyes.style.top = "38px";
+        blackEyes.style.left = "28px";
+        blackEyes.style.top = "30px";
+        orangeEyes.style.left = "85px";
+        orangeEyes.style.top = "88px";
+        yellowEyes.style.left = "55px";
+        yellowEyes.style.top = "38px";
+
+        const po = calcPupilOffset(purpleEyeL, 3);
+        purplePupilL.style.transform = `translate(${po.x}px,${po.y}px)`;
+        purplePupilR.style.transform = `translate(${po.x}px,${po.y}px)`;
+        const bo = calcPupilOffset(blackEyeL, 3);
+        blackPupilL.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+        blackPupilR.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+
+        orangePupilL.style.transform = "translate(0,0)";
+        orangePupilR.style.transform = "translate(0,0)";
+        yellowPupilL.style.transform = "translate(0,0)";
+        yellowPupilR.style.transform = "translate(0,0)";
+
+        yellowMouth.style.left = "40px";
         yellowMouth.style.top = "88px";
         yellowMouth.style.transform = "rotate(0deg)";
-      } else {
-        yellowEyes.style.left = 52 + yellowPos.faceX + "px";
-        yellowEyes.style.top = 40 + yellowPos.faceY + "px";
-        const yo = calcPupilOffset(yellowPupilL, 5);
-        yellowPupilL.style.transform = `translate(${yo.x}px, ${yo.y}px)`;
-        yellowPupilR.style.transform = `translate(${yo.x}px, ${yo.y}px)`;
-        yellowMouth.style.left = 40 + yellowPos.faceX + "px";
-        yellowMouth.style.top = 88 + yellowPos.faceY + "px";
-        yellowMouth.style.transform = "rotate(0deg)";
-      }
-    }
-
-    // ============ LOGIN ERROR ANIMATION ============
-    let errorRecoverTimer = null;
-    const shakeIds = [
-      "purple-eyes",
-      "black-eyes",
-      "orange-eyes",
-      "yellow-eyes",
-      "yellow-mouth",
-      "orange-mouth",
-    ];
-
-    function triggerLoginError() {
-      // Clear any previous error recovery timer so repeated clicks work
-      if (errorRecoverTimer) {
-        clearTimeout(errorRecoverTimer);
-        errorRecoverTimer = null;
+        orangeMouth.style.left = "90px";
       }
 
-      // Reset shake animation (remove class, force reflow, re-add)
-      const shakeEls = shakeIds.map((id) => document.getElementById(id));
-      shakeEls.forEach((el) => el.classList.remove("shake-head"));
-      // Force reflow to restart animation even on repeated clicks
-      void document.body.offsetHeight;
+      // ================================================================
+      //  公开 API — 供外部场景调用
+      // ================================================================
 
-      isLoginError = true;
-      isPasswordFocused = false;
-      updateCharacters();
+      const shakeIds = [
+        "purple-eyes", "black-eyes", "orange-eyes", "yellow-eyes",
+        "yellow-mouth", "orange-mouth",
+      ];
 
-      // Show sad mouth on orange
-      document.getElementById("orange-mouth").classList.add("visible");
+      function getShakeEls() {
+        return shakeIds.map(id => document.getElementById(id));
+      }
 
-      // Start shake after sad pose settles (the 0.7s body transition)
-      setTimeout(() => {
-        shakeEls.forEach((el) => el.classList.add("shake-head"));
-      }, 350);
+      function clearShake() {
+        getShakeEls().forEach(el => el && el.classList.remove("shake-head"));
+      }
 
-      // Recover after 2.5 seconds
-      errorRecoverTimer = setTimeout(() => {
-        isLoginError = false;
-        errorRecoverTimer = null;
-        document.getElementById("orange-mouth").classList.remove("visible");
-        shakeEls.forEach((el) => el.classList.remove("shake-head"));
+      function triggerShake() {
+        clearShake();
+        void document.body.offsetHeight;
+        getShakeEls().forEach(el => el && el.classList.add("shake-head"));
+      }
+
+      function stopShake() {
+        clearShake();
+      }
+
+      // ---------- 场景切换辅助 ----------
+      function setScene(scene) {
+        if (sceneTransitionTimer) {
+          clearTimeout(sceneTransitionTimer);
+          sceneTransitionTimer = null;
+        }
+        // 退出旧场景时恢复默认过渡
+        if (activeScene !== scene) {
+          // 清除黄色上的持续性动画
+          yellow.style.animation = "";
+          yellowMouth.style.animation = "";
+          yellowMouth.style.transform = "";
+          // 清除摇头
+          stopShake();
+          // 隐藏橙色嘴巴
+          orangeMouth.classList.remove("visible");
+        }
+        activeScene = scene;
+      }
+
+      // ---------- API: 查看场景 ----------
+
+      function doScrollDown() {
+        setScene("viewing");
+        scrollDirection = 1;
         updateCharacters();
-      }, 2500);
-    }
-
-    // ============ FORM VALIDATION ============
-    document.getElementById("login-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const email = emailInput.value.trim();
-      const pwd = passwordInput.value;
-      const errEl = document.getElementById("error-msg");
-      const emailLabel = document.getElementById("email-label");
-      const pwdLabel = document.getElementById("password-label");
-
-      // Reset
-      errEl.style.display = "none";
-      emailInput.classList.remove("error");
-      passwordInput.classList.remove("error");
-      emailLabel.classList.remove("error-label");
-      pwdLabel.classList.remove("error-label");
-
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        emailInput.classList.add("error");
-        emailLabel.classList.add("error-label");
-        errEl.textContent = "Please enter a valid email address.";
-        errEl.style.display = "block";
-        triggerLoginError();
-        return;
+        // 短时后渐进恢复
+        sceneTransitionTimer = setTimeout(() => {
+          scrollDirection = 0;
+          setScene("idle");
+          updateCharacters();
+        }, 2000);
       }
 
-      if (!pwd || pwd.length < 6) {
-        passwordInput.classList.add("error");
-        pwdLabel.classList.add("error-label");
-        errEl.textContent = "Password must be at least 6 characters.";
-        errEl.style.display = "block";
-        triggerLoginError();
-        return;
+      function doScrollUp() {
+        setScene("viewing");
+        scrollDirection = -1;
+        updateCharacters();
+        sceneTransitionTimer = setTimeout(() => {
+          scrollDirection = 0;
+          setScene("idle");
+          updateCharacters();
+        }, 2000);
       }
 
-      // Simulate login (always fails for demo to show the animation)
-      const btn = document.getElementById("btn-login");
-      btn.querySelector(".btn-text").textContent = "Signing in...";
-      btn.disabled = true;
+      function doBrowseContent() {
+        setScene("idle");
+        isBrowsingContent = true;
+        // 橙色点头，紫色和黑色微微关注
+        purple.style.transform = "skewX(-3deg) translateX(8px)";
+        black.style.transform = "skewX(2deg) translateX(4px)";
+        orange.style.animation = "gentleNod 2s ease-in-out 2";
+        orange.style.transform = "";
+        purpleEyes.style.left = "52px";
+        purpleEyes.style.top = "42px";
+        blackEyes.style.left = "30px";
+        blackEyes.style.top = "30px";
+        orangeEyes.style.left = "85px";
+        orangeEyes.style.top = "88px";
+        yellowEyes.style.left = "55px";
+        yellowEyes.style.top = "38px";
 
-      setTimeout(() => {
-        btn.querySelector(".btn-text").textContent = "Log In";
-        btn.disabled = false;
-        errEl.textContent = "Invalid email or password. Please try again.";
-        errEl.style.display = "block";
-        passwordInput.classList.add("error");
-        pwdLabel.classList.add("error-label");
-        triggerLoginError();
-      }, 1500);
-    });
+        const po = calcPupilOffset(purpleEyeL, 4);
+        purplePupilL.style.transform = `translate(${po.x}px,${po.y}px)`;
+        purplePupilR.style.transform = `translate(${po.x}px,${po.y}px)`;
 
-    // Initial render
-    updateCharacters();
+        sceneTransitionTimer = setTimeout(() => {
+          isBrowsingContent = false;
+          orange.style.animation = "";
+          setScene("idle");
+          updateCharacters();
+        }, 4500);
+      }
+
+      function doInfoCheck() {
+        setScene("idle");
+        isInfoChecking = true;
+        // 黄色专注核对，嘴巴轻微颤动
+        yellow.style.animation = "";
+        yellowMouth.style.animation = "lipQuiver 1.2s ease-in-out 3";
+        // 紫色和黑色"侧头查看"
+        purple.style.transform = "skewX(-4deg)";
+        black.style.transform = "skewX(5deg)";
+        orange.style.transform = "skewX(0deg)";
+
+        purpleEyes.style.left = "40px";
+        purpleEyes.style.top = "38px";
+        blackEyes.style.left = "20px";
+        blackEyes.style.top = "28px";
+        orangeEyes.style.left = "78px";
+        orangeEyes.style.top = "88px";
+        yellowEyes.style.left = "46px";
+        yellowEyes.style.top = "38px";
+
+        const bo = calcPupilOffset(blackEyeL, 4);
+        blackPupilL.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+        blackPupilR.style.transform = `translate(${bo.x}px,${bo.y}px)`;
+
+        sceneTransitionTimer = setTimeout(() => {
+          isInfoChecking = false;
+          yellowMouth.style.animation = "";
+          setScene("idle");
+          updateCharacters();
+        }, 4000);
+      }
+
+      // ---------- API: 编辑场景 ----------
+
+      function doEditFocus() {
+        setScene("editing");
+        if (editFocusTimer) clearTimeout(editFocusTimer);
+        updateCharacters();
+      }
+
+      function doEditBlur() {
+        if (editFocusTimer) clearTimeout(editFocusTimer);
+        yellow.style.animation = "";
+        yellowMouth.style.animation = "";
+        purple.style.height = "";
+        setScene("idle");
+        updateCharacters();
+      }
+
+      // ---------- API: 保存/提交 ----------
+
+      function doSaveSuccess() {
+        setScene("idle");
+        stopShake();
+        orangeMouth.classList.remove("visible");
+
+        // 全体弹跳庆祝
+        [purple, black, orange, yellow].forEach(el => {
+          el.style.animation = "bounceUp 0.7s ease-out";
+          el.style.transform = "";
+        });
+        // 重置黄色嘴
+        yellowMouth.style.transform = "";
+        yellowMouth.style.animation = "";
+
+        sceneTransitionTimer = setTimeout(() => {
+          [purple, black, orange, yellow].forEach(el => {
+            el.style.animation = "";
+          });
+          setScene("idle");
+          updateCharacters();
+        }, 1000);
+      }
+
+      function doSaveError() {
+        // 优先级高于其他场景
+        if (sceneTransitionTimer) clearTimeout(sceneTransitionTimer);
+        setScene("error");
+
+        isErrorActive = true;
+        orangeMouth.classList.remove("visible");
+        updateCharacters();
+
+        // 显示悲伤嘴
+        setTimeout(() => {
+          orangeMouth.classList.add("visible");
+        }, 100);
+
+        // 350ms 后摇头
+        setTimeout(() => {
+          triggerShake();
+        }, 450);
+
+        // 2500ms 恢复
+        sceneTransitionTimer = setTimeout(() => {
+          orangeMouth.classList.remove("visible");
+          stopShake();
+          isErrorActive = false;
+          setScene("idle");
+          updateCharacters();
+        }, 2800);
+      }
+
+      // ---------- API: 页面切换 ----------
+
+      function doNavSwitch() {
+        setScene("idle");
+        // 所有角色微微转向新方向（向右偏移再回到原位）
+        purple.style.transition = "all 0.4s ease-in-out";
+        black.style.transition = "all 0.4s ease-in-out";
+        orange.style.transition = "all 0.4s ease-in-out";
+        yellow.style.transition = "all 0.4s ease-in-out";
+
+        purple.style.transform = "skewX(6deg) translateX(10px)";
+        black.style.transform = "skewX(4deg) translateX(6px)";
+        orange.style.transform = "skewX(5deg) translateX(8px)";
+        yellow.style.transform = "skewX(3deg) translateX(5px)";
+
+        purpleEyes.style.left = "55px";
+        purpleEyes.style.top = "38px";
+        blackEyes.style.left = "32px";
+        blackEyes.style.top = "30px";
+        orangeEyes.style.left = "90px";
+        orangeEyes.style.top = "88px";
+        yellowEyes.style.left = "58px";
+        yellowEyes.style.top = "38px";
+
+        const po = calcPupilOffset(purpleEyeL, 6);
+        purplePupilL.style.transform = `translate(${po.x}px,${po.y}px)`;
+        purplePupilR.style.transform = `translate(${po.x}px,${po.y}px)`;
+
+        sceneTransitionTimer = setTimeout(() => {
+          [purple, black, orange, yellow].forEach(el => {
+            el.style.transition = "";
+          });
+          setScene("idle");
+          updateCharacters();
+        }, 800);
+      }
+
+      // ---------- API: 管线运行 ----------
+
+      let pipelineTimer = null;
+
+      function doPipelineRunning(running) {
+        if (pipelineTimer) {
+          clearTimeout(pipelineTimer);
+          pipelineTimer = null;
+        }
+        isPipelineRunning = running;
+        if (running) {
+          setScene("pipeline");
+          updateCharacters();
+        } else {
+          setScene("idle");
+          updateCharacters();
+        }
+      }
+
+      // ================================================================
+      //  事件绑定（替换原密码输入场景的逻辑）
+      //  绑定后当角色嵌入 config_ui.html 时自动响应场景事件
+      // ================================================================
+
+      // 页面切换监听
+      document.addEventListener("click", (e) => {
+        const navLink = e.target.closest("nav a, [data-page]");
+        if (navLink) {
+          doNavSwitch();
+        }
+      });
+
+      // 编辑输入监听（适用于所有 textarea / input 聚焦）
+      document.addEventListener("focusin", (e) => {
+        const tag = e.target.tagName;
+        if (tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT") {
+          doEditFocus();
+        }
+      });
+      document.addEventListener("focusout", (e) => {
+        const tag = e.target.tagName;
+        if (tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT") {
+          doEditBlur();
+        }
+      });
+
+      // 滚动监听
+      let scrollTimerV = null;
+      let lastScrollTop = 0;
+      document.addEventListener("scroll", () => {
+        const main = document.querySelector("main") || document.documentElement;
+        const st = main.scrollTop || 0;
+        scrollDirection = st > lastScrollTop ? 1 : st < lastScrollTop ? -1 : 0;
+        lastScrollTop = st;
+        if (scrollTimerV) clearTimeout(scrollTimerV);
+        if (activeScene !== "editing" && !isErrorActive) {
+          setScene("viewing");
+          updateCharacters();
+        }
+        scrollTimerV = setTimeout(() => {
+          scrollDirection = 0;
+          if (!isErrorActive && !isPipelineRunning && activeScene !== "editing") {
+            setScene("idle");
+            updateCharacters();
+          }
+        }, 600);
+      }, { passive: true });
+
+      // 每次渲染完成后恢复 idle（用于查看场景的 scroll 归位）
+      // 已在上方 scroll 监听中处理
+
+      // 对外暴露 API
+      window.__characters = {
+        doScrollDown,
+        doScrollUp,
+        doBrowseContent,
+        doInfoCheck,
+        doEditFocus,
+        doEditBlur,
+        doSaveSuccess,
+        doSaveError,
+        doNavSwitch,
+        doPipelineRunning,
+        // 底层
+        triggerShake,
+        stopShake,
+      };
+
+      // 初始渲染
+      updateCharacters();
+    })();
   </script>
 </body>
-
 </html>

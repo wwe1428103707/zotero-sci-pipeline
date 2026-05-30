@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { proxyFetch } from "./proxy_config.mjs";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(MODULE_DIR, "../..");
@@ -182,7 +183,7 @@ async function fetchPreferenceLearning(runtime, prompt) {
       : runtime.thinking
         ? { type: "enabled" }
         : { type: "disabled" };
-    const res = await fetch(runtime.endpoint, {
+    const res = await proxyFetch(runtime.endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

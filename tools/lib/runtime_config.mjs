@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -34,7 +35,31 @@ function defaultProjectRoot() {
   return normalizePath(path.resolve(here, "../.."));
 }
 
+let _envLoaded = false;
+function ensureEnvLoaded() {
+  if (_envLoaded) return;
+  _envLoaded = true;
+  try {
+    const envPath = path.join(defaultProjectRoot(), ".env");
+    if (fs.existsSync(envPath)) {
+      const text = fs.readFileSync(envPath, "utf8");
+      for (const line of text.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx < 0) continue;
+        const key = trimmed.slice(0, eqIdx).trim();
+        const val = trimmed.slice(eqIdx + 1).trim();
+        if (key && !process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  } catch { /* .env loading is best-effort */ }
+}
+
 export function buildRuntimeConfig({ cwd = process.cwd(), env = process.env, now = new Date() } = {}) {
+  ensureEnvLoaded();
   const repoRoot = defaultProjectRoot();
   const projectRoot = normalizePath(env.ZOTERO_PROJECT_ROOT || cwd || repoRoot);
   const researchRoot = resolveUnderRoot(projectRoot, env.RESEARCH_OS_ROOT, "research_os");
